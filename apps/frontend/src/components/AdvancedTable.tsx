@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { Archive, ArrowDown, ArrowUp, Download, Edit3, ExternalLink, Eye, Plus, RefreshCw, Search } from "lucide-react";
+import { Archive, ArrowDown, ArrowUp, Download, Edit3, ExternalLink, Mail, Plus, RefreshCw, Search } from "lucide-react";
 import { modulesByKey, type ApiRecord, type FieldDefinition, type ModuleDefinition, type ModuleKey } from "@parking/shared";
-import { archiveModuleRecord, bulkCreateSpaces, createModuleRecord, getModuleRecord, listModule, updateModuleRecord } from "../api/client";
+import { archiveModuleRecord, bulkCreateSpaces, createModuleRecord, getModuleRecord, listModule, sendReminderEmail, updateModuleRecord } from "../api/client";
 import { formatCurrency, formatDate, formatDateTime, recordTitle } from "../utils/format";
 import { StatusBadge } from "./StatusBadge";
 import { DetailDrawer } from "./DetailDrawer";
@@ -66,6 +66,10 @@ function cleanFilters(filters: FilterState, allowedKeys: Set<string>, structureI
 
 function valueForInput(value: unknown) {
   return value === undefined || value === null ? "" : String(value);
+}
+
+function isInteractiveTarget(target: EventTarget | null) {
+  return target instanceof HTMLElement && Boolean(target.closest("button, a, input, select, textarea"));
 }
 
 function displayCell(field: FieldDefinition, value: unknown, relationMap: RelationMap): ReactNode {
@@ -135,7 +139,7 @@ function FilterControl({
       <label className="filter-control">
         <span>{field.label}</span>
         <select value={value?.value ?? ""} onChange={(event) => onChange({ value: event.target.value })}>
-          <option value="">All</option>
+          <option value="">{field.key === "structure_id" ? "All structures" : "All"}</option>
           {(options ?? (field.enumValues ?? []).map((option) => ({ value: option, label: option }))).map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
@@ -190,6 +194,13 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
       return {};
     }
   }, [storageKey]);
+  const initialFilters = useMemo(() => {
+    const next = { ...(storedState.filters ?? {}) };
+    if (!structureId) {
+      delete next.structure_id;
+    }
+    return next;
+  }, [storedState.filters, structureId]);
 
   const tableFields = useMemo(
     () => definition.fields.filter((field) => field.table !== false && !(structureId && field.key === "structure_id")),
@@ -205,7 +216,7 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(storedState.pageSize ?? 20);
   const [search, setSearch] = useState(storedState.search ?? "");
-  const [filters, setFilters] = useState<FilterState>(storedState.filters ?? {});
+  const [filters, setFilters] = useState<FilterState>(initialFilters);
   const [sortBy, setSortBy] = useState(storedState.sortBy ?? definition.defaultSort);
   const [sortDir, setSortDir] = useState<"asc" | "desc">(storedState.sortDir ?? "desc");
   const [loading, setLoading] = useState(false);
@@ -398,6 +409,22 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
     loadRows();
   }
 
+  async function sendReminder(row: ApiRecord) {
+    const existingEmail = String(row.email_to ?? "").trim();
+    const email = existingEmail || window.prompt("Enter the email address for this reminder")?.trim();
+    if (!email) {
+      return;
+    }
+    try {
+      const result = await sendReminderEmail(Number(row.id), email);
+      const payload = result.data as ApiRecord & { sent?: boolean; emailConfigured?: boolean; message?: string };
+      window.alert(payload.sent ? "Scheduler email sent and marked completed." : `Scheduler email failed: ${String(payload.message ?? "No email was sent.")}`);
+      loadRows();
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : "Unable to send reminder email.");
+    }
+  }
+
   function renderEditor(field: FieldDefinition) {
     if (!editing || editing.key !== field.key) {
       return null;
@@ -514,7 +541,22 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
           </thead>
           <tbody>
             {rows.map((row) => (
-              <tr key={String(row.id)}>
+              <tr
+                key={String(row.id)}
+                className="data-row"
+                tabIndex={0}
+                onClick={(event) => {
+                  if (!isInteractiveTarget(event.target) && !editing) {
+                    setDrawer({ open: true, mode: "view", record: row });
+                  }
+                }}
+                onKeyDown={(event) => {
+                  if ((event.key === "Enter" || event.key === " ") && !editing) {
+                    event.preventDefault();
+                    setDrawer({ open: true, mode: "view", record: row });
+                  }
+                }}
+              >
                 {tableFields.map((field) => {
                   const isEditing = editing?.id === Number(row.id) && editing.key === field.key;
                   return (
@@ -537,12 +579,14 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
                   );
                 })}
                 <td className="row-actions">
-                  <button className="icon-button" onClick={() => setDrawer({ open: true, mode: "view", record: row })} title="View details" aria-label="View details">
-                    <Eye size={15} />
-                  </button>
                   <button className="icon-button" onClick={() => setDrawer({ open: true, mode: "edit", record: row })} title="Edit" aria-label="Edit">
                     <Edit3 size={15} />
                   </button>
+                  {definition.key === "reminders" ? (
+                    <button className="icon-button" onClick={() => sendReminder(row)} title="Send reminder email" aria-label="Send reminder email">
+                      <Mail size={15} />
+                    </button>
+                  ) : null}
                   <button className="icon-button" onClick={() => archiveRow(row)} title="Archive" aria-label="Archive">
                     <Archive size={15} />
                   </button>

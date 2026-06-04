@@ -111,6 +111,21 @@ export function DetailDrawer({ open, mode, definition, record, forcedStructureId
     };
   }, [definition.fields, mode, open, record]);
 
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [onClose, open]);
+
   if (!open) {
     return null;
   }
@@ -118,8 +133,16 @@ export function DetailDrawer({ open, mode, definition, record, forcedStructureId
   const title = mode === "add" ? `Add ${definition.singular}` : record ? recordTitle(record) : definition.singular;
 
   return (
-    <div className="drawer-backdrop" role="presentation">
-      <aside className="detail-drawer" aria-label={title}>
+    <div
+      className="drawer-backdrop"
+      role="presentation"
+      onClick={(event) => {
+        if (event.target === event.currentTarget) {
+          onClose();
+        }
+      }}
+    >
+      <aside className="detail-drawer" aria-label={title} role="dialog" aria-modal="true">
         <div className="drawer-header">
           <div>
             <p>{definition.label}</p>
