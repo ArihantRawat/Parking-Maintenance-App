@@ -1,7 +1,9 @@
 import { Route, Routes } from "react-router-dom";
 import { AppShell } from "./components/AppShell";
+import { CalendarPage } from "./pages/CalendarPage";
 import { HomeDashboard } from "./pages/HomeDashboard";
 import { ReportsPage } from "./pages/ReportsPage";
+import { SchedulerPage } from "./pages/SchedulerPage";
 import { SearchPage } from "./pages/SearchPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { StructureDashboard } from "./pages/StructureDashboard";
@@ -16,6 +18,8 @@ export default function App() {
         <Route path="structures/:id" element={<StructureDashboard />} />
         <Route path="structures/:id/:tab" element={<StructureDashboard />} />
         <Route path="search" element={<SearchPage />} />
+        <Route path="calendar" element={<CalendarPage />} />
+        <Route path="scheduler" element={<SchedulerPage />} />
         <Route path="reports" element={<ReportsPage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>

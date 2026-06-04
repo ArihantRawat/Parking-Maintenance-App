@@ -1,12 +1,13 @@
 import { FormEvent, useState } from "react";
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { BarChart3, Building2, ClipboardList, Home, Search, Settings } from "lucide-react";
+import { BellRing, Building2, CalendarDays, ClipboardList, Home, Search, Settings } from "lucide-react";
 
 const navItems = [
   { to: "/", label: "Home", icon: Home },
   { to: "/structures", label: "Structures", icon: Building2 },
   { to: "/search", label: "Search", icon: Search },
-  { to: "/reports", label: "Reports", icon: BarChart3 },
+  { to: "/calendar", label: "Calendar", icon: CalendarDays },
+  { to: "/scheduler", label: "Scheduler", icon: BellRing },
   { to: "/settings", label: "Settings", icon: Settings }
 ];
 
