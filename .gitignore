@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+
+apps/backend/data/*.sqlite
+apps/backend/data/*.sqlite-*
+apps/backend/storage/attachments/
+apps/frontend/dist/

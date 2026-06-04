@@ -1,0 +1,22 @@
+{
+  "name": "parking-structure-maintenance-app",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w @parking/backend\" \"npm run dev -w @parking/frontend\"",
+    "dev:backend": "npm run dev -w @parking/backend",
+    "dev:frontend": "npm run dev -w @parking/frontend",
+    "build": "npm run build -w @parking/backend && npm run build -w @parking/frontend",
+    "db:setup": "npm run db:setup -w @parking/backend",
+    "seed": "npm run seed -w @parking/backend",
+    "start": "npm run start -w @parking/backend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "typescript": "^5.8.3"
+  }
+}
