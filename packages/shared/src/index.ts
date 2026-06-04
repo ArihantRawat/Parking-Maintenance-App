@@ -73,7 +73,7 @@ export const statusValues = {
   order: ["ordered", "delivered", "installed", "cancelled"],
   ticket: ["open", "in progress", "completed", "cancelled"],
   scheduled: ["scheduled", "ongoing", "completed", "cancelled"],
-  reminder: ["pending", "sent", "completed", "dismissed", "overdue"],
+  reminder: ["scheduled", "completed", "failed"],
   purchase: ["requested", "ordered", "delivered", "installed", "cancelled", "paid"],
   attachment: ["active", "archived"],
   event: ["open", "scheduled", "completed", "cancelled", "info"],
@@ -89,6 +89,9 @@ export const typeValues = {
   cleaningType: ["sweeping", "pressure washing", "trash removal", "surface cleaning", "stain removal", "other"],
   strippingType: ["roof stripping", "paint stripping", "line removal", "surface stripping", "other"],
   frequency: ["Annual", "Quarterly", "Monthly"],
+  reminderType: ["cleaning", "stripping", "equipment", "sign replacement", "maintenance", "purchase", "general"],
+  reminderEvent: ["scheduled work", "completed work", "service due", "warranty expiry", "replacement due", "follow up", "general"],
+  reminderFrequency: ["once", "daily", "weekly", "monthly", "quarterly", "annually"],
   purchaseItem: ["Material", "Service", "Supply", "Other"],
   inspectionStatus: ["passed", "needs action", "failed", "follow-up required"],
   attachmentType: ["photo", "document", "invoice", "before photo", "after photo", "other"]
@@ -448,22 +451,28 @@ export const moduleDefinitions: ModuleDefinition[] = [
     key: "reminders",
     tableName: "reminders",
     route: "reminders",
-    label: "Reminders",
-    singular: "Reminder",
-    description: "Manual and generated local reminders.",
+    label: "Scheduler",
+    singular: "Scheduled Reminder",
+    description: "Scheduled email reminders for maintenance work and follow-ups.",
     supportsStructure: true,
     statusField: "status",
     defaultSort: "reminder_date",
-    searchFields: ["id", "entity_type", "title", "status", "source", "notes"],
+    searchFields: ["title", "message", "event_type", "reminder_type", "status", "frequency", "email_to", "notes"],
     fields: [
       structureField,
-      { key: "entity_type", label: "Related Module", type: "text", table: true, form: true, editable: true, filter: "text" },
-      { key: "entity_id", label: "Related ID", type: "number", table: false, form: true, editable: true, filter: "number" },
-      { key: "title", label: "Title", type: "text", table: true, form: true, editable: true, required: true, filter: "text" },
-      { key: "reminder_date", label: "Reminder Date", type: "date", table: true, form: true, editable: true, filter: "date" },
-      { key: "offset_days", label: "Offset Days", type: "number", table: true, form: true, editable: true, filter: "number" },
-      { key: "status", label: "Status", type: "enum", table: true, form: true, editable: true, enumValues: statusValues.reminder, filter: "enum" },
-      { key: "source", label: "Source", type: "text", table: true, form: true, editable: true, filter: "text" },
+      { key: "title", label: "Event", type: "text", table: true, form: true, editable: true, required: true, filter: "text", placeholder: "Example: Quarterly sweeping follow-up" },
+      { key: "message", label: "Message", type: "textarea", table: true, form: true, editable: true, filter: "text" },
+      { key: "event_type", label: "Event Type", type: "enum", table: true, form: true, editable: true, enumValues: typeValues.reminderEvent, filter: "enum" },
+      { key: "reminder_type", label: "Reminder Type", type: "enum", table: true, form: true, editable: true, enumValues: typeValues.reminderType, filter: "enum" },
+      { key: "reminder_date", label: "Date", type: "date", table: true, form: true, editable: true, filter: "date" },
+      { key: "reminder_time", label: "Time", type: "text", table: true, form: true, editable: true, placeholder: "Example: 09:00 AM" },
+      { key: "frequency", label: "Frequency", type: "enum", table: true, form: true, editable: true, enumValues: typeValues.reminderFrequency, filter: "enum" },
+      { key: "email_to", label: "Email To", type: "text", table: true, form: true, editable: true, filter: "text", placeholder: "name@example.com" },
+      { key: "status", label: "Email Status", type: "enum", table: true, form: false, editable: false, enumValues: statusValues.reminder, filter: "enum" },
+      { key: "entity_type", label: "Linked Type", type: "enum", table: false, form: false, editable: false, enumValues: typeValues.reminderType, filter: "enum" },
+      { key: "entity_id", label: "Linked Record", type: "number", table: false, form: false, editable: false },
+      { key: "offset_days", label: "Offset Days", type: "number", table: false, form: false, editable: false },
+      { key: "source", label: "Source", type: "text", table: false, form: false, editable: false },
       { key: "notes", label: "Notes", type: "textarea", table: false, form: true, editable: true, filter: "text" },
       ...timestamps
     ]
@@ -553,8 +562,7 @@ export const homeModuleKeys: ModuleKey[] = [
   "equipment",
   "cleaningLogs",
   "strippingLogs",
-  "purchases",
-  "reminders"
+  "purchases"
 ];
 
 export const structureDashboardTabs = [
@@ -566,7 +574,7 @@ export const structureDashboardTabs = [
   { key: "cleaning-logs", label: "Cleaning" },
   { key: "stripping-logs", label: "Stripping" },
   { key: "purchases", label: "Purchases" },
-  { key: "reminders", label: "Reminders" },
+  { key: "reminders", label: "Scheduler" },
   { key: "timeline", label: "Activity Timeline" },
   { key: "reports", label: "Reports" }
 ];

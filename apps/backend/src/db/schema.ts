@@ -255,9 +255,15 @@ CREATE TABLE IF NOT EXISTS reminders (
   entity_type TEXT,
   entity_id INTEGER,
   title TEXT NOT NULL,
+  message TEXT,
+  event_type TEXT,
+  reminder_type TEXT,
   reminder_date TEXT,
+  reminder_time TEXT,
+  frequency TEXT,
+  email_to TEXT,
   offset_days INTEGER,
-  status TEXT NOT NULL DEFAULT 'pending',
+  status TEXT NOT NULL DEFAULT 'scheduled',
   source TEXT,
   notes TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
@@ -355,6 +361,14 @@ export function migrate() {
   addColumnIfMissing("equipment", "schedule_start_date", "TEXT");
   addColumnIfMissing("equipment", "schedule_end_date", "TEXT");
   addColumnIfMissing("cleaning_logs", "level", "TEXT");
+  addColumnIfMissing("reminders", "message", "TEXT");
+  addColumnIfMissing("reminders", "event_type", "TEXT");
+  addColumnIfMissing("reminders", "reminder_type", "TEXT");
+  addColumnIfMissing("reminders", "reminder_time", "TEXT");
+  addColumnIfMissing("reminders", "frequency", "TEXT");
+  addColumnIfMissing("reminders", "email_to", "TEXT");
+  db.exec("UPDATE reminders SET status = 'scheduled' WHERE status IN ('pending','overdue','dismissed')");
+  db.exec("UPDATE reminders SET status = 'completed' WHERE status = 'sent'");
 }
 
 function addColumnIfMissing(table: string, column: string, type: string) {

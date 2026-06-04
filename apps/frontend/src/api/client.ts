@@ -98,6 +98,13 @@ export async function generateReminders() {
   return request<ApiSingleResponse<ApiRecord[]>>("/reminders/generate", { method: "POST" });
 }
 
+export async function sendReminderEmail(id: number, to?: string) {
+  return request<ApiSingleResponse<ApiRecord>>(`/reminders/${id}/send`, {
+    method: "POST",
+    body: JSON.stringify({ to })
+  });
+}
+
 export async function generateTicketFromInspection(id: number, payload: ApiRecord = {}) {
   return request<ApiSingleResponse<ApiRecord>>(`/inspections/${id}/generate-ticket`, {
     method: "POST",

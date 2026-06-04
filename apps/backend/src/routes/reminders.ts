@@ -37,10 +37,15 @@ function generateForRows(entityType: string, rows: Array<Record<string, unknown>
           structure_id: row.structure_id,
           entity_type: entityType,
           entity_id: row.id,
-          title: `${titlePrefix}: ${row.title ?? row.name ?? row.issue_type ?? row.cleaning_type ?? row.stripping_type ?? row.sign_type ?? `#${row.id}`}`,
+          title: `${titlePrefix}: ${row.title ?? row.name ?? row.issue_type ?? row.cleaning_type ?? row.stripping_type ?? row.sign_type ?? "record"}`,
+          message: `Generated reminder for ${titlePrefix.toLowerCase()}.`,
+          event_type: "service due",
+          reminder_type: entityType.replaceAll("-", " "),
           reminder_date: dateMinusDays(String(targetDate).slice(0, 10), offset),
+          reminder_time: "09:00",
+          frequency: "once",
           offset_days: offset,
-          status: "pending",
+          status: "scheduled",
           source: `${entityType}.${dateField}`,
           notes: `Generated ${offset} days before ${targetDate}.`
         })
@@ -109,27 +114,71 @@ export function createReminderActionsRouter() {
     "/:id/send",
     asyncHandler(async (req, res) => {
       const reminder = getRecord(modulesByKey.reminders, Number(req.params.id));
-      const to = String(req.body.to ?? "");
+      const to = String(req.body.to ?? reminder.email_to ?? "");
       if (!to) {
-        throw new HttpError(400, "Recipient email is required when sending a reminder.");
+        throw new HttpError(400, "Recipient email is required when sending a reminder. Add Email To on the reminder or enter one before sending.");
       }
 
       if (!isSmtpConfigured()) {
+        const failed = updateRecord(modulesByKey.reminders, Number(req.params.id), {
+          status: "failed",
+          email_to: to,
+          notes: `${reminder.notes ?? ""}\nEmail failed at ${nowIso()}: SMTP is not configured.`
+        });
         sendData(res, {
           sent: false,
           emailConfigured: false,
-          reminder,
+          reminder: failed,
           message: "SMTP is not configured; reminder remains local-only."
         });
         return;
       }
 
-      await sendReminderEmail(to, String(reminder.title), `${reminder.title}\n\nDate: ${reminder.reminder_date}\n\n${reminder.notes ?? ""}`);
-      const updated = updateRecord(modulesByKey.reminders, Number(req.params.id), {
-        status: "sent",
-        notes: `${reminder.notes ?? ""}\nSent by email at ${nowIso()}`
-      });
-      sendData(res, { sent: true, emailConfigured: true, reminder: updated });
+      const structure = reminder.structure_id ? (db.prepare("SELECT name FROM structures WHERE id = ?").get(reminder.structure_id) as { name?: string } | undefined) : undefined;
+      const scheduledFor = [reminder.reminder_date, reminder.reminder_time].filter(Boolean).join(" at ");
+      const body = [
+        "Hello,",
+        "",
+        "This is a scheduled reminder from the Parking Structure Maintenance App.",
+        "",
+        "Reminder Details",
+        "----------------",
+        `Event: ${reminder.title ?? "Scheduled Reminder"}`,
+        `Message: ${reminder.message ?? "No message provided."}`,
+        `Structure: ${structure?.name ?? "Not assigned"}`,
+        `Scheduled For: ${scheduledFor || "Not specified"}`,
+        `Event Type: ${reminder.event_type ?? "general"}`,
+        `Reminder Type: ${reminder.reminder_type ?? reminder.entity_type ?? "general"}`,
+        `Frequency: ${reminder.frequency ?? "once"}`,
+        "",
+        reminder.notes ? `Notes: ${reminder.notes}` : "",
+        "",
+        "Please review this reminder and take the appropriate action.",
+        "",
+        "Thank you,",
+        "Parking Structure Maintenance App"
+      ].join("\n");
+      try {
+        await sendReminderEmail(to, `Reminder: ${String(reminder.title ?? "Scheduled Reminder")}`, body);
+        const updated = updateRecord(modulesByKey.reminders, Number(req.params.id), {
+          status: "completed",
+          email_to: to,
+          notes: `${reminder.notes ?? ""}\nEmail sent successfully at ${nowIso()}.`
+        });
+        sendData(res, { sent: true, emailConfigured: true, reminder: updated });
+      } catch (err) {
+        const failed = updateRecord(modulesByKey.reminders, Number(req.params.id), {
+          status: "failed",
+          email_to: to,
+          notes: `${reminder.notes ?? ""}\nEmail failed at ${nowIso()}: ${err instanceof Error ? err.message : "Unknown email error"}`
+        });
+        sendData(res, {
+          sent: false,
+          emailConfigured: true,
+          reminder: failed,
+          message: err instanceof Error ? err.message : "Unable to send reminder email."
+        });
+      }
     })
   );
 
