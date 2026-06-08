@@ -61,7 +61,7 @@ export async function updateModuleRecord(definition: ModuleDefinition, id: numbe
   });
 }
 
-export async function archiveModuleRecord(definition: ModuleDefinition, id: number) {
+export async function deleteModuleRecord(definition: ModuleDefinition, id: number) {
   return request<ApiSingleResponse<ApiRecord>>(`/${definition.route}/${id}`, {
     method: "DELETE"
   });
