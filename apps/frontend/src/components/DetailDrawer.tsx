@@ -14,6 +14,7 @@ type DetailDrawerProps = {
   forcedStructureId?: number;
   onClose: () => void;
   onSubmit: (payload: ApiRecord) => Promise<ApiRecord | void> | ApiRecord | void;
+  onSaved?: () => void;
 };
 
 function displayValue(key: string, value: unknown) {
@@ -44,7 +45,7 @@ function isVisibleDetailField(field: FieldDefinition) {
   return field.table !== false || field.form !== false || field.key === "created_at" || field.key === "updated_at";
 }
 
-export function DetailDrawer({ open, mode, definition, record, forcedStructureId, onClose, onSubmit }: DetailDrawerProps) {
+export function DetailDrawer({ open, mode, definition, record, forcedStructureId, onClose, onSubmit, onSaved }: DetailDrawerProps) {
   const [attachments, setAttachments] = useState<ApiRecord[]>([]);
   const [relationLabels, setRelationLabels] = useState<Record<string, string>>({});
   const detailFields = useMemo(() => definition.fields.filter(isVisibleDetailField), [definition.fields]);
@@ -131,10 +132,11 @@ export function DetailDrawer({ open, mode, definition, record, forcedStructureId
   }
 
   const title = mode === "add" ? `Add ${definition.singular}` : record ? recordTitle(record) : definition.singular;
+  const isAddMode = mode === "add";
 
   return (
     <div
-      className="drawer-backdrop"
+      className={`drawer-backdrop ${isAddMode ? "drawer-backdrop-modal" : ""}`}
       role="presentation"
       onClick={(event) => {
         if (event.target === event.currentTarget) {
@@ -142,7 +144,7 @@ export function DetailDrawer({ open, mode, definition, record, forcedStructureId
         }
       }}
     >
-      <aside className="detail-drawer" aria-label={title} role="dialog" aria-modal="true">
+      <aside className={`detail-drawer ${isAddMode ? "detail-drawer-modal" : ""}`} aria-label={title} role="dialog" aria-modal="true">
         <div className="drawer-header">
           <div>
             <p>{definition.label}</p>
@@ -174,12 +176,15 @@ export function DetailDrawer({ open, mode, definition, record, forcedStructureId
                     const url = attachmentUrl(attachment.file_path);
                     const mime = String(attachment.mime_type ?? "");
                     return (
-                      <a key={String(attachment.id)} href={url} target="_blank" rel="noreferrer" className="attachment-preview-card">
+                      <article key={String(attachment.id)} className="attachment-preview-card">
                         {mime.startsWith("image/") ? <img src={url} alt={String(attachment.file_name ?? "Attachment")} /> : null}
                         {mime.startsWith("video/") ? <video src={url} controls /> : null}
                         {!mime.startsWith("image/") && !mime.startsWith("video/") ? <span>Open file</span> : null}
                         <strong>{String(attachment.file_name ?? "Attachment")}</strong>
-                      </a>
+                        <a href={url} target="_blank" rel="noreferrer">
+                          Open
+                        </a>
+                      </article>
                     );
                   })}
                 </div>
@@ -192,6 +197,7 @@ export function DetailDrawer({ open, mode, definition, record, forcedStructureId
             initial={mode === "edit" ? record ?? undefined : undefined}
             forcedStructureId={forcedStructureId}
             onSubmit={onSubmit}
+            onSaved={onSaved ?? onClose}
             submitLabel={mode === "add" ? "Create" : "Save changes"}
           />
         )}
