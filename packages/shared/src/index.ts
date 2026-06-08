@@ -87,7 +87,7 @@ export const typeValues = {
   priority: ["low", "medium", "high", "emergency"],
   cleaningCategory: ["spot cleaning", "annual/deep cleaning"],
   cleaningType: ["sweeping", "pressure washing", "trash removal", "surface cleaning", "stain removal", "other"],
-  strippingType: ["roof stripping", "paint stripping", "line removal", "surface stripping", "other"],
+  strippingType: ["roof stripping", "paint stripping", "line removal", "surface stripping", "elevator cleaning", "other"],
   frequency: ["Annual", "Quarterly", "Monthly"],
   reminderType: ["cleaning", "stripping", "equipment", "sign replacement", "maintenance", "purchase", "general"],
   reminderEvent: ["scheduled work", "completed work", "service due", "warranty expiry", "replacement due", "follow up", "general"],
@@ -113,6 +113,11 @@ const structureField: FieldDefinition = {
   filter: "enum",
   relation: "structures",
   relationLabel: "name"
+};
+
+const optionalStructureField: FieldDefinition = {
+  ...structureField,
+  required: false
 };
 
 export const moduleDefinitions: ModuleDefinition[] = [
@@ -151,9 +156,10 @@ export const moduleDefinitions: ModuleDefinition[] = [
     fields: [
       structureField,
       { key: "space_number", label: "Name / Group Name", type: "text", table: true, form: true, editable: true, required: true, filter: "text" },
+      { key: "quantity", label: "Quantity", type: "number", table: true, form: true, editable: true, filter: "number" },
       { key: "group_id", label: "Group", type: "number", table: false, form: false, editable: false },
       { key: "label", label: "Display Label", type: "text", table: false, form: false, editable: false },
-      { key: "level", label: "Level/Floor", type: "text", table: true, form: true, editable: true, filter: "text" },
+      { key: "level", label: "Level/Floor", type: "text", table: true, form: true, editable: true, filter: "text", optionsFrom: "levels" },
       { key: "area", label: "Area/Zone", type: "text", table: false, form: false, editable: false },
       { key: "type", label: "Type", type: "enum", table: true, form: true, editable: true, enumValues: typeValues.space, filter: "enum" },
       { key: "condition", label: "Condition", type: "enum", table: true, form: true, editable: true, enumValues: typeValues.condition, filter: "enum" },
@@ -177,7 +183,7 @@ export const moduleDefinitions: ModuleDefinition[] = [
       structureField,
       { key: "name", label: "Name", type: "text", table: true, form: true, editable: true, required: true, filter: "text" },
       { key: "group_type", label: "Type", type: "enum", table: true, form: true, editable: true, enumValues: typeValues.space, filter: "enum" },
-      { key: "level", label: "Level/Floor", type: "text", table: true, form: true, editable: true, filter: "text" },
+      { key: "level", label: "Level/Floor", type: "text", table: true, form: true, editable: true, filter: "text", optionsFrom: "levels" },
       { key: "area", label: "Area/Zone", type: "text", table: false, form: false, editable: false },
       { key: "status", label: "Status", type: "enum", table: true, form: true, editable: true, enumValues: statusValues.asset, filter: "enum" },
       { key: "description", label: "Description", type: "textarea", table: false, form: true, editable: true, filter: "text" },
@@ -194,7 +200,7 @@ export const moduleDefinitions: ModuleDefinition[] = [
     description: "Parking signage assigned to structures, spaces, and groups.",
     supportsStructure: true,
     statusField: "status",
-    defaultSort: "installation_date",
+    defaultSort: "id",
     searchFields: ["name", "sign_type", "message", "condition", "status", "level", "supplier", "notes"],
     fields: [
       structureField,
@@ -202,15 +208,15 @@ export const moduleDefinitions: ModuleDefinition[] = [
       { key: "space_id", label: "Space / Group Name", type: "number", table: true, form: true, editable: true, filter: "enum", relation: "parkingSpaces", relationLabel: "space_number" },
       { key: "space_group_id", label: "Group", type: "number", table: false, form: false, editable: false },
       { key: "level", label: "Level/Floor", type: "text", table: true, form: true, editable: true, filter: "text", optionsFrom: "levels" },
-      { key: "sign_type", label: "Type", type: "enum", table: true, form: true, editable: true, required: true, enumValues: typeValues.sign, filter: "enum" },
+      { key: "sign_type", label: "Type", type: "enum", table: true, form: false, editable: true, enumValues: typeValues.sign, filter: "enum" },
       { key: "message", label: "Message/Text", type: "textarea", table: true, form: true, editable: true, filter: "text" },
       { key: "condition", label: "Condition", type: "enum", table: true, form: true, editable: true, enumValues: typeValues.condition, filter: "enum" },
       { key: "status", label: "Status", type: "enum", table: true, form: true, editable: true, enumValues: statusValues.sign, filter: "enum" },
       { key: "installation_date", label: "Installed", type: "date", table: true, form: true, editable: true, filter: "date" },
       { key: "replacement_date", label: "Replacement Due", type: "date", table: true, form: true, editable: true, filter: "date" },
       { key: "vendor_id", label: "Vendor Name", type: "number", table: true, form: true, editable: true, filter: "enum", relation: "vendors", relationLabel: "name" },
-      { key: "link_url", label: "Sign Link", type: "text", table: false, form: true, editable: true },
-      { key: "media_url", label: "Picture/Video Link", type: "text", table: false, form: true, editable: true },
+      { key: "link_url", label: "Sign Link", type: "text", table: false, form: false, editable: true },
+      { key: "media_url", label: "Picture/Video Link", type: "text", table: false, form: false, editable: true },
       { key: "cost", label: "Cost", type: "number", table: false, form: false, editable: false },
       { key: "notes", label: "Notes", type: "textarea", table: false, form: true, editable: true },
       ...timestamps
@@ -225,7 +231,7 @@ export const moduleDefinitions: ModuleDefinition[] = [
     description: "Purchase and installation tracking for sign orders.",
     supportsStructure: true,
     statusField: "status",
-    defaultSort: "purchase_date",
+    defaultSort: "id",
     searchFields: ["name", "sign_type", "condition", "status", "notes"],
     fields: [
       structureField,
@@ -344,13 +350,13 @@ export const moduleDefinitions: ModuleDefinition[] = [
     supportsStructure: true,
     statusField: "status",
     defaultSort: "scheduled_date",
-    searchFields: ["id", "cleaning_scope", "cleaning_type", "category", "status", "assigned_to", "area", "notes"],
+    searchFields: ["id", "cleaning_type", "category", "status", "assigned_to", "area", "notes"],
     fields: [
       structureField,
       { key: "space_id", label: "Space", type: "number", table: false, form: true, editable: true, filter: "number", relation: "parkingSpaces" },
       { key: "level", label: "Level/Floor", type: "text", table: true, form: true, editable: true, filter: "text", optionsFrom: "levels" },
       { key: "area", label: "Area/Zone", type: "text", table: false, form: false, editable: false },
-      { key: "cleaning_scope", label: "Scope", type: "enum", table: true, form: true, editable: true, enumValues: ["space", "area", "full structure"], filter: "enum" },
+      { key: "cleaning_scope", label: "Scope", type: "enum", table: false, form: false, editable: false, enumValues: ["space", "area", "full structure"] },
       { key: "cleaning_type", label: "Type", type: "enum", table: true, form: true, editable: true, enumValues: typeValues.cleaningType, filter: "enum" },
       { key: "category", label: "Category", type: "enum", table: true, form: true, editable: true, enumValues: typeValues.cleaningCategory, filter: "enum" },
       { key: "vendor_id", label: "Vendor Name", type: "number", table: false, form: true, editable: true, filter: "enum", relation: "vendors", relationLabel: "name" },
@@ -430,7 +436,7 @@ export const moduleDefinitions: ModuleDefinition[] = [
     defaultSort: "purchase_date",
     searchFields: ["id", "entity_type", "item_type", "description", "status", "invoice_number", "notes"],
     fields: [
-      structureField,
+      optionalStructureField,
       { key: "entity_type", label: "Related Type", type: "enum", table: true, form: true, editable: true, enumValues: ["materials", "services", "supplies", "other"], filter: "enum" },
       { key: "entity_id", label: "Related ID", type: "number", table: false, form: false, editable: false },
       { key: "vendor_id", label: "Vendor Name", type: "number", table: true, form: true, editable: true, filter: "enum", relation: "vendors", relationLabel: "name" },
@@ -440,7 +446,6 @@ export const moduleDefinitions: ModuleDefinition[] = [
       { key: "purchase_date", label: "Purchased", type: "date", table: true, form: true, editable: true, filter: "date" },
       { key: "delivery_date", label: "Delivered", type: "date", table: true, form: true, editable: true, filter: "date" },
       { key: "installation_date", label: "Installed", type: "date", table: true, form: true, editable: true, filter: "date" },
-      { key: "quantity", label: "Quantity", type: "number", table: true, form: true, editable: true, filter: "number" },
       { key: "status", label: "Status", type: "enum", table: true, form: true, editable: true, enumValues: statusValues.purchase, filter: "enum" },
       { key: "invoice_number", label: "Invoice/Ref", type: "text", table: true, form: true, editable: true, filter: "text" },
       { key: "notes", label: "Notes", type: "textarea", table: false, form: true, editable: true, filter: "text" },
@@ -489,7 +494,7 @@ export const moduleDefinitions: ModuleDefinition[] = [
     defaultSort: "created_at",
     searchFields: ["id", "entity_type", "file_name", "file_path", "mime_type", "attachment_type", "before_after", "status", "notes"],
     fields: [
-      structureField,
+      optionalStructureField,
       { key: "entity_type", label: "Related Module", type: "text", table: true, form: true, editable: true, filter: "text" },
       { key: "entity_id", label: "Related ID", type: "number", table: true, form: true, editable: true, filter: "number" },
       { key: "file_name", label: "File Name", type: "text", table: true, form: true, editable: true, required: true, filter: "text" },
