@@ -1,13 +1,25 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type { ReactNode } from "react";
 import { Link } from "react-router-dom";
-import { Archive, ArrowDown, ArrowUp, Download, Edit3, ExternalLink, Mail, Plus, RefreshCw, Search } from "lucide-react";
+import { ArrowDown, ArrowUp, Download, Edit3, ExternalLink, Mail, MoreVertical, Plus, RefreshCw, Search, Trash2 } from "lucide-react";
 import { modulesByKey, type ApiRecord, type FieldDefinition, type ModuleDefinition, type ModuleKey } from "@parking/shared";
-import { archiveModuleRecord, bulkCreateSpaces, createModuleRecord, getModuleRecord, listModule, sendReminderEmail, updateModuleRecord } from "../api/client";
-import { formatCurrency, formatDate, formatDateTime, recordTitle } from "../utils/format";
+import { deleteModuleRecord, createModuleRecord, getModuleRecord, listModule, sendReminderEmail, updateModuleRecord } from "../api/client";
+import { recordTitle } from "../utils/format";
 import { StatusBadge } from "./StatusBadge";
 import { DetailDrawer } from "./DetailDrawer";
 import { EmptyState } from "./EmptyState";
+import { FilterControl } from "./table/FilterControl";
+import type { ActionMenuState, DrawerState, EditingCell, FilterOption, FilterOptions, FilterState, RelationMap, ToastState } from "./table/types";
+import {
+  ALL_LEVELS_OPTION,
+  cleanFilters,
+  defaultTableMeta,
+  displayCell,
+  downloadCsv,
+  isInteractiveTarget,
+  parseLevels,
+  tableStorageKey,
+  valueForInput
+} from "./table/tableUtils";
 
 type AdvancedTableProps = {
   definition: ModuleDefinition;
@@ -16,203 +28,43 @@ type AdvancedTableProps = {
   compact?: boolean;
 };
 
-type FilterState = Record<string, { value?: string; min?: string; max?: string; from?: string; to?: string }>;
-type FilterOption = { value: string; label: string };
-type FilterOptions = Record<string, FilterOption[]>;
-type RelationMap = Record<string, Record<string, string>>;
-
-function parseLevels(value: unknown) {
-  return String(value ?? "")
-    .split(/[\n,]/)
-    .map((level) => level.trim())
-    .filter(Boolean);
-}
-
-type DrawerState = {
-  open: boolean;
-  mode: "view" | "edit" | "add";
-  record?: ApiRecord | null;
-};
-
-type EditingCell = {
-  id: number;
-  key: string;
-  value: string;
-};
-
-const defaultMeta = {
-  page: 1,
-  pageSize: 20,
-  total: 0,
-  totalPages: 1
-};
-
-function tableStorageKey(definition: ModuleDefinition, structureId?: number) {
-  return `parking-table:${definition.key}:${structureId ?? "global"}`;
-}
-
-function cleanFilters(filters: FilterState, allowedKeys: Set<string>, structureId?: number): FilterState {
-  const output: FilterState = {};
-  for (const [key, value] of Object.entries(filters)) {
-    if (allowedKeys.has(key) && Object.values(value).some((entry) => entry !== undefined && entry !== "")) {
-      output[key] = value;
-    }
-  }
-  if (structureId) {
-    output.structure_id = { value: String(structureId) };
-  }
-  return output;
-}
-
-function valueForInput(value: unknown) {
-  return value === undefined || value === null ? "" : String(value);
-}
-
-function isInteractiveTarget(target: EventTarget | null) {
-  return target instanceof HTMLElement && Boolean(target.closest("button, a, input, select, textarea"));
-}
-
-function displayCell(field: FieldDefinition, value: unknown, relationMap: RelationMap): ReactNode {
-  if (field.key === "file_path" && value) {
-    return (
-      <a href={String(value)} target="_blank" rel="noreferrer">
-        {String(value)}
-      </a>
-    );
-  }
-  if (field.type === "date") {
-    return formatDate(value);
-  }
-  if (field.type === "datetime" || field.key.endsWith("_at")) {
-    return formatDateTime(value);
-  }
-  if (field.key.includes("cost")) {
-    return formatCurrency(value);
-  }
-  if (field.relation && value !== undefined && value !== null && value !== "") {
-    return relationMap[field.key]?.[String(value)] ?? String(value);
-  }
-  if (field.type === "number") {
-    return String(value ?? "");
-  }
-  return String(value ?? "");
-}
-
-function downloadCsv(definition: ModuleDefinition, rows: ApiRecord[], fields: FieldDefinition[]) {
-  const headers = fields.map((field) => field.key);
-  const labels = fields.map((field) => field.label);
-  const lines = [
-    labels.join(","),
-    ...rows.map((row) =>
-      headers
-        .map((key) => {
-          const raw = row[key] ?? "";
-          return `"${String(raw).replaceAll('"', '""')}"`;
-        })
-        .join(",")
-    )
-  ];
-  const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8" });
-  const link = document.createElement("a");
-  link.href = URL.createObjectURL(blob);
-  link.download = `${definition.route}-filtered.csv`;
-  link.click();
-  URL.revokeObjectURL(link.href);
-}
-
-function FilterControl({
-  field,
-  value,
-  onChange,
-  options
-}: {
-  field: FieldDefinition;
-  value: FilterState[string] | undefined;
-  onChange: (value: FilterState[string]) => void;
-  options?: FilterOption[];
-}) {
-  if (!field.filter) {
-    return null;
-  }
-  if (field.filter === "enum" || field.key === "level" || options?.length) {
-    return (
-      <label className="filter-control">
-        <span>{field.label}</span>
-        <select value={value?.value ?? ""} onChange={(event) => onChange({ value: event.target.value })}>
-          <option value="">{field.key === "structure_id" ? "All structures" : "All"}</option>
-          {(options ?? (field.enumValues ?? []).map((option) => ({ value: option, label: option }))).map((option) => (
-            <option key={option.value} value={option.value}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </label>
-    );
-  }
-  if (field.filter === "date") {
-    return (
-      <label className="filter-control filter-pair">
-        <span>{field.label}</span>
-        <div>
-          <input type="date" value={value?.from ?? ""} onChange={(event) => onChange({ ...value, from: event.target.value })} />
-          <input type="date" value={value?.to ?? ""} onChange={(event) => onChange({ ...value, to: event.target.value })} />
-        </div>
-      </label>
-    );
-  }
-  if (field.filter === "number") {
-    return (
-      <label className="filter-control filter-pair">
-        <span>{field.label}</span>
-        <div>
-          <input type="number" placeholder="Min" value={value?.min ?? ""} onChange={(event) => onChange({ ...value, min: event.target.value })} />
-          <input type="number" placeholder="Max" value={value?.max ?? ""} onChange={(event) => onChange({ ...value, max: event.target.value })} />
-        </div>
-      </label>
-    );
-  }
-  return (
-    <label className="filter-control">
-      <span>{field.label}</span>
-      <input value={value?.value ?? ""} onChange={(event) => onChange({ value: event.target.value })} />
-    </label>
-  );
-}
-
 export function AdvancedTable({ definition, title, structureId, compact }: AdvancedTableProps) {
-  const storageKey = tableStorageKey(definition, structureId);
+  const scopedStructureId = Number.isFinite(structureId) && Number(structureId) > 0 ? Number(structureId) : undefined;
+  const storageKey = tableStorageKey(definition, scopedStructureId);
   const storedState = useMemo(() => {
     try {
-      return JSON.parse(localStorage.getItem(storageKey) ?? "{}") as Partial<{
+      const parsed = JSON.parse(sessionStorage.getItem(storageKey) ?? "{}") as Partial<{
         search: string;
         filters: FilterState;
         sortBy: string;
         sortDir: "asc" | "desc";
         pageSize: number;
       }>;
+      if ((definition.key === "signs" && parsed.sortBy === "installation_date") || (definition.key === "signOrders" && parsed.sortBy === "purchase_date")) {
+        return { ...parsed, sortBy: undefined, sortDir: undefined };
+      }
+      return parsed;
     } catch {
       return {};
     }
-  }, [storageKey]);
+  }, [definition.key, storageKey]);
   const initialFilters = useMemo(() => {
     const next = { ...(storedState.filters ?? {}) };
-    if (!structureId) {
-      delete next.structure_id;
-    }
+    delete next.structure_id;
     return next;
-  }, [storedState.filters, structureId]);
+  }, [storedState.filters]);
 
   const tableFields = useMemo(
-    () => definition.fields.filter((field) => field.table !== false && !(structureId && field.key === "structure_id")),
-    [definition, structureId]
+    () => definition.fields.filter((field) => field.table !== false && !(scopedStructureId && field.key === "structure_id")),
+    [definition, scopedStructureId]
   );
   const filterFields = useMemo(
-    () => definition.fields.filter((field) => field.filter && !(structureId && field.key === "structure_id")),
-    [definition, structureId]
+    () => definition.fields.filter((field) => field.filter && !(scopedStructureId && field.key === "structure_id")),
+    [definition, scopedStructureId]
   );
 
   const [rows, setRows] = useState<ApiRecord[]>([]);
-  const [meta, setMeta] = useState(defaultMeta);
+  const [meta, setMeta] = useState(defaultTableMeta);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(storedState.pageSize ?? 20);
   const [search, setSearch] = useState(storedState.search ?? "");
@@ -225,6 +77,8 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
   const [editing, setEditing] = useState<EditingCell | null>(null);
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({});
   const [relationMap, setRelationMap] = useState<RelationMap>({});
+  const [toast, setToast] = useState<ToastState | null>(null);
+  const [actionMenu, setActionMenu] = useState<ActionMenuState | null>(null);
 
   const loadRows = useCallback(async () => {
     setLoading(true);
@@ -236,7 +90,7 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
         search,
         sortBy,
         sortDir,
-        filters: cleanFilters(filters, new Set(filterFields.map((field) => field.key)), structureId)
+        filters: cleanFilters(filters, new Set(filterFields.map((field) => field.key)), scopedStructureId)
       });
       setRows(result.data);
       setMeta(result.meta);
@@ -245,15 +99,38 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
     } finally {
       setLoading(false);
     }
-  }, [definition, filterFields, filters, page, pageSize, search, sortBy, sortDir, structureId]);
+  }, [definition, filterFields, filters, page, pageSize, scopedStructureId, search, sortBy, sortDir]);
 
   useEffect(() => {
     loadRows();
   }, [loadRows]);
 
   useEffect(() => {
-    localStorage.setItem(storageKey, JSON.stringify({ search, filters, sortBy, sortDir, pageSize }));
+    sessionStorage.setItem(storageKey, JSON.stringify({ search, filters, sortBy, sortDir, pageSize }));
   }, [filters, pageSize, search, sortBy, sortDir, storageKey]);
+
+  useEffect(() => {
+    if (!toast) {
+      return;
+    }
+    const timer = window.setTimeout(() => setToast(null), 3200);
+    return () => window.clearTimeout(timer);
+  }, [toast]);
+
+  useEffect(() => {
+    if (!actionMenu) {
+      return;
+    }
+    function closeMenu() {
+      setActionMenu(null);
+    }
+    window.addEventListener("scroll", closeMenu, true);
+    window.addEventListener("resize", closeMenu);
+    return () => {
+      window.removeEventListener("scroll", closeMenu, true);
+      window.removeEventListener("resize", closeMenu);
+    };
+  }, [actionMenu]);
 
   useEffect(() => {
     let cancelled = false;
@@ -266,7 +143,7 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
       for (const field of optionFields) {
         if (field.relation) {
           const related = modulesByKey[field.relation as ModuleKey];
-          const relatedFilters = related.supportsStructure && structureId ? { structure_id: { value: String(structureId) } } : undefined;
+          const relatedFilters = related.supportsStructure && scopedStructureId ? { structure_id: { value: String(scopedStructureId) } } : undefined;
           const result = await listModule(related, { pageSize: 100, filters: relatedFilters });
           const options = result.data.map((record) => ({
             value: String(record.id),
@@ -284,8 +161,8 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
 
         if (field.key === "level" || field.optionsFrom === "levels") {
           let levelValues: string[] = [];
-          if (structureId) {
-            const structure = await getModuleRecord(modulesByKey.structures, structureId);
+          if (scopedStructureId) {
+            const structure = await getModuleRecord(modulesByKey.structures, scopedStructureId);
             levelValues = parseLevels(structure.data.levels);
           } else {
             const structures = await listModule(modulesByKey.structures, { pageSize: 100 });
@@ -294,11 +171,21 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
           if (levelValues.length === 0) {
             const result = await listModule(definition, {
               pageSize: 100,
-              filters: structureId && definition.supportsStructure ? { structure_id: { value: String(structureId) } } : undefined
+              filters: scopedStructureId && definition.supportsStructure ? { structure_id: { value: String(scopedStructureId) } } : undefined
             });
             levelValues = result.data.map((record) => String(record[field.key] ?? "")).filter(Boolean);
           }
-          const options = Array.from(new Set(levelValues)).map((value) => ({ value, label: value }));
+          const options = Array.from(new Set([ALL_LEVELS_OPTION, ...levelValues]))
+            .sort((a, b) => {
+              if (a === ALL_LEVELS_OPTION) {
+                return -1;
+              }
+              if (b === ALL_LEVELS_OPTION) {
+                return 1;
+              }
+              return a.localeCompare(b);
+            })
+            .map((value) => ({ value, label: value }));
           if (options.length > 0) {
             optionEntries.push([field.key, options]);
           }
@@ -308,7 +195,7 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
         if (field.key === "space_number") {
           const result = await listModule(definition, {
             pageSize: 100,
-            filters: structureId && definition.supportsStructure ? { structure_id: { value: String(structureId) } } : undefined
+            filters: scopedStructureId && definition.supportsStructure ? { structure_id: { value: String(scopedStructureId) } } : undefined
           });
           const options = Array.from(new Set(result.data.map((record) => String(record[field.key] ?? "")).filter(Boolean))).map((value) => ({ value, label: value }));
           if (options.length > 0) {
@@ -333,7 +220,7 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
     return () => {
       cancelled = true;
     };
-  }, [definition, filterFields, structureId, tableFields]);
+  }, [definition, filterFields, scopedStructureId, tableFields]);
 
   function updateFilter(key: string, value: FilterState[string]) {
     setFilters((current) => ({ ...current, [key]: value }));
@@ -350,31 +237,9 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
   }
 
   async function saveDrawer(payload: ApiRecord) {
-    if (structureId && definition.supportsStructure) {
-      payload.structure_id = structureId;
+    if (scopedStructureId && definition.supportsStructure) {
+      payload.structure_id = scopedStructureId;
     }
-    if (drawer.mode === "add" && definition.key === "parkingSpaces" && Number(payload.quantity ?? 1) > 1) {
-      const baseName = String(payload.space_number ?? "").trim();
-      const bulkPayload: ApiRecord = {
-        structure_id: payload.structure_id,
-        prefix: baseName,
-        startNumber: 1,
-        count: Number(payload.quantity),
-        padLength: 0,
-        labelPrefix: baseName || "Space",
-        level: payload.level,
-        area: payload.area,
-        type: payload.type,
-        condition: payload.condition,
-        status: payload.status,
-        notes: payload.notes
-      };
-      const result = await bulkCreateSpaces(bulkPayload);
-      setDrawer({ open: false, mode: "view" });
-      loadRows();
-      return result.data[0];
-    }
-    delete payload.quantity;
     let saved: ApiRecord;
     if (drawer.mode === "edit" && drawer.record?.id) {
       const result = await updateModuleRecord(definition, Number(drawer.record.id), payload);
@@ -383,9 +248,24 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
       const result = await createModuleRecord(definition, payload);
       saved = result.data;
     }
-    setDrawer({ open: false, mode: "view" });
-    loadRows();
+    if (drawer.mode === "add") {
+      setRows((current) => [saved, ...current.filter((row) => row.id !== saved.id)].slice(0, pageSize));
+      setMeta((current) => ({ ...current, page: 1, total: current.total + 1, totalPages: Math.max(1, Math.ceil((current.total + 1) / current.pageSize)) }));
+      if (page !== 1) {
+        setPage(1);
+      }
+    } else {
+      await loadRows();
+    }
     return saved;
+  }
+
+  function handleFormSaved() {
+    const wasAdd = drawer.mode === "add";
+    setDrawer({ open: false, mode: "view" });
+    if (wasAdd) {
+      setToast({ id: Date.now(), message: `${definition.singular} Successfully Created.` });
+    }
   }
 
   async function commitEdit() {
@@ -401,12 +281,33 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
     loadRows();
   }
 
-  async function archiveRow(row: ApiRecord) {
-    if (!window.confirm(`Archive or deactivate ${definition.singular} "${recordTitle(row)}"?`)) {
+  async function deleteRow(row: ApiRecord) {
+    if (!window.confirm(`Delete ${definition.singular} "${recordTitle(row)}"? This cannot be undone.`)) {
       return;
     }
-    await archiveModuleRecord(definition, Number(row.id));
-    loadRows();
+    try {
+      await deleteModuleRecord(definition, Number(row.id));
+      setActionMenu(null);
+      await loadRows();
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : `Unable to delete ${definition.singular}.`);
+    }
+  }
+
+  function toggleActionMenu(event: React.MouseEvent<HTMLButtonElement>, row: ApiRecord) {
+    event.preventDefault();
+    event.stopPropagation();
+    const rowId = String(row.id);
+    const rect = event.currentTarget.getBoundingClientRect();
+    setActionMenu((current) =>
+      current?.rowId === rowId
+        ? null
+        : {
+            rowId,
+            top: rect.bottom + 6,
+            left: Math.min(window.innerWidth - 206, Math.max(12, rect.right - 190))
+          }
+    );
   }
 
   async function sendReminder(row: ApiRecord) {
@@ -547,6 +448,7 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
                 tabIndex={0}
                 onClick={(event) => {
                   if (!isInteractiveTarget(event.target) && !editing) {
+                    setActionMenu(null);
                     setDrawer({ open: true, mode: "view", record: row });
                   }
                 }}
@@ -579,25 +481,59 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
                   );
                 })}
                 <td className="row-actions">
-                  <button className="icon-button" onClick={() => setDrawer({ open: true, mode: "edit", record: row })} title="Edit" aria-label="Edit">
-                    <Edit3 size={15} />
+                  <button
+                    className="row-actions-trigger"
+                    onClick={(event) => toggleActionMenu(event, row)}
+                    title="Actions"
+                    aria-label={`Actions for ${recordTitle(row)}`}
+                    aria-expanded={actionMenu?.rowId === String(row.id)}
+                  >
+                    <MoreVertical size={17} />
                   </button>
-                  {definition.key === "reminders" ? (
-                    <button className="icon-button" onClick={() => sendReminder(row)} title="Send reminder email" aria-label="Send reminder email">
-                      <Mail size={15} />
-                    </button>
-                  ) : null}
-                  <button className="icon-button" onClick={() => archiveRow(row)} title="Archive" aria-label="Archive">
-                    <Archive size={15} />
-                  </button>
-                  {definition.key === "structures" ? (
-                    <Link className="icon-button" to={`/structures/${row.id}`} title="Open dashboard" aria-label="Open dashboard">
-                      <ExternalLink size={15} />
-                    </Link>
-                  ) : definition.supportsStructure && row.structure_id ? (
-                    <Link className="icon-button" to={`/structures/${row.structure_id}`} title="Related structure" aria-label="Related structure">
-                      <ExternalLink size={15} />
-                    </Link>
+                  {actionMenu?.rowId === String(row.id) ? (
+                    <div
+                      className="row-actions-menu"
+                      role="menu"
+                      style={{ top: actionMenu.top, left: actionMenu.left }}
+                      onClick={(event) => event.stopPropagation()}
+                    >
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActionMenu(null);
+                          setDrawer({ open: true, mode: "view", record: row });
+                        }}
+                      >
+                        <Search size={14} />
+                        View details
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setActionMenu(null);
+                          setDrawer({ open: true, mode: "edit", record: row });
+                        }}
+                      >
+                        <Edit3 size={14} />
+                        Edit
+                      </button>
+                      {definition.key === "reminders" ? (
+                        <button type="button" onClick={() => sendReminder(row)}>
+                          <Mail size={14} />
+                          Send reminder email
+                        </button>
+                      ) : null}
+                      {definition.key === "structures" ? (
+                        <Link to={`/structures/${row.id}`} onClick={() => setActionMenu(null)}>
+                          <ExternalLink size={14} />
+                          Open dashboard
+                        </Link>
+                      ) : null}
+                      <button type="button" className="danger" onClick={() => deleteRow(row)}>
+                        <Trash2 size={14} />
+                        Delete
+                      </button>
+                    </div>
                   ) : null}
                 </td>
               </tr>
@@ -640,10 +576,17 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
         mode={drawer.mode}
         definition={definition}
         record={drawer.record}
-        forcedStructureId={structureId}
+        forcedStructureId={scopedStructureId}
         onClose={() => setDrawer({ open: false, mode: "view" })}
         onSubmit={saveDrawer}
+        onSaved={handleFormSaved}
       />
+
+      {toast ? (
+        <div className="toast-notification" role="status" aria-live="polite" key={toast.id}>
+          {toast.message}
+        </div>
+      ) : null}
 
     </section>
   );
