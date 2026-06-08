@@ -1,74 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import { ChevronDown, ChevronRight, Layers, Maximize2, Minus, Plus, SlidersHorizontal } from "lucide-react";
-import type { ApiRecord } from "@parking/shared";
 import { fetchRelationshipGraph } from "../api/client";
 import { StatusBadge } from "./StatusBadge";
-import { formatCurrency, formatDate, formatDateTime, humanize } from "../utils/format";
+import { humanize } from "../utils/format";
+import { detailEntries, formatDetailValue, groupColor, relationshipLinkCounts, type GraphEdge, type GraphNode } from "./relationship/relationshipUtils";
 
 type RelationshipViewProps = {
   structureId: number;
 };
-
-type GraphNode = {
-  id: string;
-  entityType: string;
-  entityId: number;
-  label: string;
-  group: string;
-  status?: string;
-  data: Record<string, unknown>;
-  [key: string]: unknown;
-};
-
-type GraphEdge = {
-  id: string;
-  source: string;
-  target: string;
-  label: string;
-  [key: string]: unknown;
-};
-
-function groupColor(group: string) {
-  const colors: Record<string, string> = {
-    structures: "#174f4f",
-    "parking-spaces": "#3f6f9f",
-    "parking-space-groups": "#855d28",
-    signs: "#8a3a3a",
-    "sign-orders": "#755b9c",
-    equipment: "#516b2d",
-    "maintenance-tickets": "#9b4f2d",
-    "cleaning-logs": "#1f6f85",
-    "stripping-logs": "#6a5d37",
-    inspections: "#495277",
-    purchases: "#7d4d68",
-    reminders: "#7c5d1f",
-    attachments: "#666"
-  };
-  return colors[group] ?? "#4a5568";
-}
-
-function formatDetailValue(key: string, value: unknown) {
-  if (value === null || value === undefined || value === "") {
-    return "";
-  }
-  if (key.includes("cost")) {
-    return formatCurrency(value);
-  }
-  if (key.endsWith("_at")) {
-    return formatDateTime(value);
-  }
-  if (key.includes("date") || key.includes("expiry")) {
-    return formatDate(value);
-  }
-  return String(value);
-}
-
-function detailEntries(data: Record<string, unknown>) {
-  return Object.entries(data)
-    .filter(([key, value]) => key !== "id" && !key.endsWith("_id") && key !== "archived_at" && value !== null && value !== "")
-    .slice(0, 14);
-}
 
 export function RelationshipView({ structureId }: RelationshipViewProps) {
   const [nodes, setNodes] = useState<GraphNode[]>([]);
@@ -97,18 +37,7 @@ export function RelationshipView({ structureId }: RelationshipViewProps) {
   );
   const statusOptions = useMemo(() => Array.from(new Set(nodes.map((node) => String(node.status ?? "")).filter(Boolean))).sort(), [nodes]);
 
-  const linkCountByNode = useMemo(() => {
-    const rootId = rootNode?.id;
-    const map = new Map<string, number>();
-    for (const edge of edges) {
-      if (rootId && (edge.source === rootId || edge.target === rootId)) {
-        continue;
-      }
-      map.set(edge.source, (map.get(edge.source) ?? 0) + 1);
-      map.set(edge.target, (map.get(edge.target) ?? 0) + 1);
-    }
-    return map;
-  }, [edges, rootNode?.id]);
+  const linkCountByNode = useMemo(() => relationshipLinkCounts(edges, rootNode?.id), [edges, rootNode?.id]);
 
   const groupedNodes = useMemo(
     () =>
