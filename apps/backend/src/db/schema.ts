@@ -46,6 +46,7 @@ CREATE TABLE IF NOT EXISTS parking_spaces (
   structure_id INTEGER NOT NULL REFERENCES structures(id) ON UPDATE CASCADE,
   group_id INTEGER REFERENCES parking_space_groups(id) ON UPDATE CASCADE ON DELETE SET NULL,
   space_number TEXT NOT NULL,
+  quantity INTEGER DEFAULT 1,
   label TEXT,
   level TEXT,
   area TEXT,
@@ -65,7 +66,7 @@ CREATE TABLE IF NOT EXISTS signs (
   space_group_id INTEGER REFERENCES parking_space_groups(id) ON UPDATE CASCADE ON DELETE SET NULL,
   name TEXT,
   level TEXT,
-  sign_type TEXT NOT NULL,
+  sign_type TEXT,
   message TEXT,
   condition TEXT,
   status TEXT NOT NULL DEFAULT 'active',
@@ -230,7 +231,7 @@ CREATE TABLE IF NOT EXISTS inspections (
 
 CREATE TABLE IF NOT EXISTS purchases (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  structure_id INTEGER NOT NULL REFERENCES structures(id) ON UPDATE CASCADE,
+  structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
   entity_type TEXT,
   entity_id INTEGER,
   vendor_id INTEGER REFERENCES vendors(id) ON UPDATE CASCADE ON DELETE SET NULL,
@@ -273,7 +274,7 @@ CREATE TABLE IF NOT EXISTS reminders (
 
 CREATE TABLE IF NOT EXISTS attachments (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  structure_id INTEGER NOT NULL REFERENCES structures(id) ON UPDATE CASCADE,
+  structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
   entity_type TEXT,
   entity_id INTEGER,
   file_name TEXT NOT NULL,
@@ -290,7 +291,7 @@ CREATE TABLE IF NOT EXISTS attachments (
 
 CREATE TABLE IF NOT EXISTS activity_events (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  structure_id INTEGER NOT NULL REFERENCES structures(id) ON UPDATE CASCADE,
+  structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
   entity_type TEXT,
   entity_id INTEGER,
   event_type TEXT,
@@ -342,6 +343,73 @@ CREATE INDEX IF NOT EXISTS idx_activity_event_date ON activity_events(event_date
 
 export function migrate() {
   db.exec(sql);
+  rebuildTableIfColumnNotNull(
+    "purchases",
+    "structure_id",
+    `CREATE TABLE purchases_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      entity_type TEXT,
+      entity_id INTEGER,
+      vendor_id INTEGER REFERENCES vendors(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      item_type TEXT,
+      description TEXT,
+      cost REAL DEFAULT 0,
+      purchase_date TEXT,
+      delivery_date TEXT,
+      installation_date TEXT,
+      quantity INTEGER DEFAULT 1,
+      status TEXT NOT NULL DEFAULT 'ordered',
+      invoice_number TEXT,
+      notes TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      archived_at TEXT
+    )`
+  );
+  rebuildTableIfColumnNotNull(
+    "activity_events",
+    "structure_id",
+    `CREATE TABLE activity_events_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      entity_type TEXT,
+      entity_id INTEGER,
+      event_type TEXT,
+      event_date TEXT NOT NULL,
+      title TEXT NOT NULL,
+      description TEXT,
+      status TEXT,
+      category TEXT,
+      actor TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+    )`
+  );
+  rebuildTableIfColumnNotNull(
+    "attachments",
+    "structure_id",
+    `CREATE TABLE attachments_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      entity_type TEXT,
+      entity_id INTEGER,
+      file_name TEXT NOT NULL,
+      file_path TEXT,
+      mime_type TEXT,
+      attachment_type TEXT,
+      before_after TEXT,
+      status TEXT NOT NULL DEFAULT 'active',
+      notes TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      archived_at TEXT
+    )`
+  );
+  db.exec("CREATE INDEX IF NOT EXISTS idx_purchases_structure ON purchases(structure_id)");
+  db.exec("CREATE INDEX IF NOT EXISTS idx_attachments_structure ON attachments(structure_id)");
+  db.exec("CREATE INDEX IF NOT EXISTS idx_activity_structure ON activity_events(structure_id)");
+  db.exec("CREATE INDEX IF NOT EXISTS idx_activity_event_date ON activity_events(event_date)");
   const activityColumns = db.prepare("PRAGMA table_info(activity_events)").all() as Array<{ name: string }>;
   if (!activityColumns.some((column) => column.name === "updated_at")) {
     db.exec("ALTER TABLE activity_events ADD COLUMN updated_at TEXT");
@@ -351,6 +419,7 @@ export function migrate() {
   addColumnIfMissing("signs", "level", "TEXT");
   addColumnIfMissing("signs", "link_url", "TEXT");
   addColumnIfMissing("signs", "media_url", "TEXT");
+  addColumnIfMissing("parking_spaces", "quantity", "INTEGER DEFAULT 1");
   addColumnIfMissing("sign_orders", "name", "TEXT");
   addColumnIfMissing("sign_orders", "level", "TEXT");
   addColumnIfMissing("sign_orders", "sign_type", "TEXT");
@@ -369,11 +438,63 @@ export function migrate() {
   addColumnIfMissing("reminders", "email_to", "TEXT");
   db.exec("UPDATE reminders SET status = 'scheduled' WHERE status IN ('pending','overdue','dismissed')");
   db.exec("UPDATE reminders SET status = 'completed' WHERE status = 'sent'");
+  rebuildTableIfColumnNotNull(
+    "signs",
+    "sign_type",
+    `CREATE TABLE signs_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      structure_id INTEGER NOT NULL REFERENCES structures(id) ON UPDATE CASCADE,
+      space_id INTEGER REFERENCES parking_spaces(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      space_group_id INTEGER REFERENCES parking_space_groups(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      name TEXT,
+      level TEXT,
+      sign_type TEXT,
+      message TEXT,
+      condition TEXT,
+      status TEXT NOT NULL DEFAULT 'active',
+      installation_date TEXT,
+      replacement_date TEXT,
+      vendor_id INTEGER REFERENCES vendors(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      link_url TEXT,
+      media_url TEXT,
+      cost REAL DEFAULT 0,
+      notes TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      archived_at TEXT
+    )`
+  );
+  db.exec("CREATE INDEX IF NOT EXISTS idx_signs_structure ON signs(structure_id)");
 }
 
 function addColumnIfMissing(table: string, column: string, type: string) {
   const columns = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string }>;
   if (!columns.some((item) => item.name === column)) {
     db.exec(`ALTER TABLE ${table} ADD COLUMN ${column} ${type}`);
+  }
+}
+
+function rebuildTableIfColumnNotNull(table: string, column: string, createSql: string) {
+  const columns = db.prepare(`PRAGMA table_info(${table})`).all() as Array<{ name: string; notnull: number }>;
+  const target = columns.find((item) => item.name === column);
+  if (!target?.notnull) {
+    return;
+  }
+
+  const columnNames = columns.map((item) => item.name);
+  const columnList = columnNames.join(", ");
+  db.exec("PRAGMA foreign_keys = OFF");
+  try {
+    db.exec("BEGIN");
+    db.exec(createSql);
+    db.exec(`INSERT INTO ${table}_new (${columnList}) SELECT ${columnList} FROM ${table}`);
+    db.exec(`DROP TABLE ${table}`);
+    db.exec(`ALTER TABLE ${table}_new RENAME TO ${table}`);
+    db.exec("COMMIT");
+  } catch (error) {
+    db.exec("ROLLBACK");
+    throw error;
+  } finally {
+    db.exec("PRAGMA foreign_keys = ON");
   }
 }
