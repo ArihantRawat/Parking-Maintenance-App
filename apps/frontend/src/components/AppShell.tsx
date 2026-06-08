@@ -1,25 +1,15 @@
-import { FormEvent, useState } from "react";
-import { NavLink, Outlet, useNavigate } from "react-router-dom";
-import { BellRing, Building2, CalendarDays, ClipboardList, Home, Search, Settings } from "lucide-react";
+import { NavLink, Outlet } from "react-router-dom";
+import { BellRing, Building2, CalendarDays, ClipboardList, Home, Search } from "lucide-react";
 
 const navItems = [
   { to: "/", label: "Home", icon: Home },
   { to: "/structures", label: "Structures", icon: Building2 },
   { to: "/search", label: "Search", icon: Search },
   { to: "/calendar", label: "Calendar", icon: CalendarDays },
-  { to: "/scheduler", label: "Scheduler", icon: BellRing },
-  { to: "/settings", label: "Settings", icon: Settings }
+  { to: "/scheduler", label: "Scheduler", icon: BellRing }
 ];
 
 export function AppShell() {
-  const navigate = useNavigate();
-  const [query, setQuery] = useState("");
-
-  function submit(event: FormEvent) {
-    event.preventDefault();
-    navigate(`/search?q=${encodeURIComponent(query)}`);
-  }
-
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -44,10 +34,6 @@ export function AppShell() {
       </aside>
       <main className="main-area">
         <header className="topbar">
-          <form className="global-search" onSubmit={submit}>
-            <Search size={17} />
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Global search" />
-          </form>
           <div className="local-pill">Local SQLite</div>
         </header>
         <div className="page-content">

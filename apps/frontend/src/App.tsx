@@ -5,7 +5,6 @@ import { HomeDashboard } from "./pages/HomeDashboard";
 import { ReportsPage } from "./pages/ReportsPage";
 import { SchedulerPage } from "./pages/SchedulerPage";
 import { SearchPage } from "./pages/SearchPage";
-import { SettingsPage } from "./pages/SettingsPage";
 import { StructureDashboard } from "./pages/StructureDashboard";
 import { StructureList } from "./pages/StructureList";
 
@@ -21,7 +20,6 @@ export default function App() {
         <Route path="calendar" element={<CalendarPage />} />
         <Route path="scheduler" element={<SchedulerPage />} />
         <Route path="reports" element={<ReportsPage />} />
-        <Route path="settings" element={<SettingsPage />} />
       </Route>
     </Routes>
   );
