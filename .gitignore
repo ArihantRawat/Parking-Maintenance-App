@@ -8,3 +8,4 @@ apps/backend/data/*.sqlite
 apps/backend/data/*.sqlite-*
 apps/backend/storage/attachments/
 apps/frontend/dist/
+.codex-runtime/
