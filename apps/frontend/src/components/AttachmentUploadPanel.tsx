@@ -53,7 +53,7 @@ export function AttachmentUploadPanel({ structureId, onUploaded }: { structureId
       <form className="upload-form" onSubmit={submit}>
         <label>
           <span>File</span>
-          <input type="file" multiple onChange={(event) => setFiles(Array.from(event.target.files ?? []))} />
+          <input type="file" multiple accept="image/*,video/*" onChange={(event) => setFiles(Array.from(event.target.files ?? []))} />
         </label>
         <label>
           <span>Related Module</span>
@@ -65,7 +65,24 @@ export function AttachmentUploadPanel({ structureId, onUploaded }: { structureId
         </label>
         <label>
           <span>Type</span>
-          <select value={attachmentType} onChange={(event) => setAttachmentType(event.target.value)}>
+          <select
+            value={attachmentType}
+            onChange={(event) => {
+              const selected = event.target.value;
+              if (selected === "other") {
+                const customType = window.prompt("Enter the attachment type name");
+                const customValue = customType?.trim();
+                if (customValue) {
+                  setAttachmentType(customValue);
+                }
+                return;
+              }
+              setAttachmentType(selected);
+            }}
+          >
+            {!["photo", "document", "invoice", "before photo", "after photo", "other"].includes(attachmentType) ? (
+              <option value={attachmentType}>{attachmentType}</option>
+            ) : null}
             {["photo", "document", "invoice", "before photo", "after photo", "other"].map((option) => (
               <option key={option} value={option}>
                 {option}
