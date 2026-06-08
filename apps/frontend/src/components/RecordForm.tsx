@@ -8,10 +8,17 @@ type RecordFormProps = {
   initial?: ApiRecord;
   forcedStructureId?: number;
   onSubmit: (payload: ApiRecord) => Promise<ApiRecord | void> | ApiRecord | void;
+  onSaved?: () => void;
   submitLabel?: string;
 };
 
 type RelationOptions = Record<string, ApiRecord[]>;
+
+const ALL_LEVELS_OPTION = "All Levels / Full Structure";
+
+function fileKey(file: File) {
+  return `${file.name}:${file.size}:${file.lastModified}`;
+}
 
 function parseLevels(value: unknown) {
   return String(value ?? "")
@@ -36,7 +43,7 @@ function initialValue(field: FieldDefinition, record?: ApiRecord, forcedStructur
   return "";
 }
 
-export function RecordForm({ definition, initial, forcedStructureId, onSubmit, submitLabel = "Save" }: RecordFormProps) {
+export function RecordForm({ definition, initial, forcedStructureId, onSubmit, onSaved, submitLabel = "Save" }: RecordFormProps) {
   const editableFields = useMemo(
     () => definition.fields.filter((field) => field.form !== false && field.key !== "created_at" && field.key !== "updated_at"),
     [definition]
@@ -98,7 +105,15 @@ export function RecordForm({ definition, initial, forcedStructureId, onSubmit, s
         const result = await listModule(modulesByKey.parkingSpaces, { pageSize: 100, filters: { structure_id: { value: String(structureValue) } } });
         levels = result.data.map((record) => String(record.level ?? "").trim()).filter(Boolean);
       }
-      levels = Array.from(new Set(levels)).sort();
+      levels = Array.from(new Set([ALL_LEVELS_OPTION, ...levels])).sort((a, b) => {
+        if (a === ALL_LEVELS_OPTION) {
+          return -1;
+        }
+        if (b === ALL_LEVELS_OPTION) {
+          return 1;
+        }
+        return a.localeCompare(b);
+      });
       if (!cancelled) {
         setLevelOptions(levels);
       }
@@ -128,10 +143,12 @@ export function RecordForm({ definition, initial, forcedStructureId, onSubmit, s
             ? Number(savedRecord?.id ?? initial?.id)
             : Number(forcedStructureId ?? values.structure_id ?? savedRecord?.structure_id ?? initial?.structure_id);
         const entityId = Number(savedRecord?.id ?? initial?.id);
-        if (structureId && entityId) {
+        if (entityId) {
           const form = new FormData();
           files.forEach((file) => form.append("files", file));
-          form.append("structure_id", String(structureId));
+          if (structureId) {
+            form.append("structure_id", String(structureId));
+          }
           form.append("entity_type", definition.route);
           form.append("entity_id", String(entityId));
           form.append("attachment_type", "photo");
@@ -140,20 +157,31 @@ export function RecordForm({ definition, initial, forcedStructureId, onSubmit, s
           setFiles([]);
         }
       }
+      onSaved?.();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to save record.");
+      const message = err instanceof Error ? err.message : "Unable to save record.";
+      setError(message);
+      window.alert(message);
     } finally {
       setSaving(false);
     }
   }
 
+  function addFiles(selectedFiles: FileList | null) {
+    const incoming = Array.from(selectedFiles ?? []);
+    if (incoming.length === 0) {
+      return;
+    }
+    setFiles((current) => {
+      const existing = new Set(current.map(fileKey));
+      const additions = incoming.filter((file) => !existing.has(fileKey(file)));
+      return [...current, ...additions];
+    });
+  }
+
   function setValue(key: string, value: string) {
     setValues((current) => {
-      const next = { ...current, [key]: value };
-      if (definition.key === "cleaningLogs" && value && (key === "space_id" || key === "level")) {
-        next.cleaning_scope = "area";
-      }
-      return next;
+      return { ...current, [key]: value };
     });
   }
 
@@ -227,12 +255,16 @@ export function RecordForm({ definition, initial, forcedStructureId, onSubmit, s
         <select
           value={String(value)}
           onChange={(event) => {
-            if ((field.key === "type" || field.key === "sign_type" || field.key === "stripping_type" || field.key === "item_type") && event.target.value.toLowerCase() === "other") {
-              const customType = window.prompt("Enter the type name");
-              setValue(field.key, customType?.trim() || event.target.value);
+            const selected = event.target.value;
+            if (selected.toLowerCase() === "other") {
+              const customType = window.prompt(`Enter the ${field.label.toLowerCase()} name`);
+              const customValue = customType?.trim();
+              if (customValue) {
+                setValue(field.key, customValue);
+              }
               return;
             }
-            setValue(field.key, event.target.value);
+            setValue(field.key, selected);
           }}
         >
           {hasCustomOption ? <option value={String(value)}>{String(value)}</option> : null}
@@ -272,16 +304,31 @@ export function RecordForm({ definition, initial, forcedStructureId, onSubmit, s
           </label>
         );
       })}
-      {definition.key === "parkingSpaces" && !initial ? (
-        <label className="form-field">
-          <span>Quantity</span>
-          <input type="number" min="1" value={String(values.quantity ?? "1")} onChange={(event) => setValue("quantity", event.target.value)} />
-        </label>
-      ) : null}
-      <label className="form-field form-field-wide">
+      <div className="form-field form-field-wide attachment-picker">
         <span>Attachments (optional images/videos)</span>
-        <input type="file" multiple accept="image/*,video/*" onChange={(event) => setFiles(Array.from(event.target.files ?? []))} />
-      </label>
+        <div className="attachment-picker-row">
+          <label className="secondary-file-button">
+            {files.length > 0 ? "Add more" : "Add images/videos"}
+            <input
+              type="file"
+              multiple
+              accept="image/*,video/*"
+              onChange={(event) => {
+                addFiles(event.target.files);
+                event.target.value = "";
+              }}
+            />
+          </label>
+          <strong>{files.length} selected</strong>
+        </div>
+        {files.length > 0 ? (
+          <div className="selected-file-list">
+            {files.map((file) => (
+              <span key={fileKey(file)}>{file.name}</span>
+            ))}
+          </div>
+        ) : null}
+      </div>
       {error ? <div className="form-error">{error}</div> : null}
       <button className="primary-button" type="submit" disabled={saving}>
         {saving ? "Saving" : submitLabel}
