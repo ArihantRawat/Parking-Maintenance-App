@@ -38,15 +38,12 @@ export function createAttachmentRouter() {
       if (!files?.length) {
         throw new HttpError(400, "At least one file field named 'files' is required.");
       }
-      const structureId = Number(req.body.structure_id);
-      if (!structureId) {
-        throw new HttpError(400, "Structure is required.");
-      }
+      const structureId = req.body.structure_id ? Number(req.body.structure_id) : null;
 
       const rows = files.map((file) => {
         const relativePath = path.relative(config.storageDir, file.path).replaceAll("\\", "/");
         return createRecord(modulesByKey.attachments, {
-          structure_id: structureId,
+          structure_id: structureId || null,
           entity_type: req.body.entity_type ?? "manual",
           entity_id: req.body.entity_id ? Number(req.body.entity_id) : null,
           file_name: req.body.file_name || file.originalname,
