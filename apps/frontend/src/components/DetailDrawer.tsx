@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { modulesByKey, type ApiRecord, type FieldDefinition, type ModuleDefinition, type ModuleKey } from "@parking/shared";
 import { StatusBadge } from "./StatusBadge";
-import { formatCurrency, formatDate, formatDateTime, recordTitle } from "../utils/format";
+import { formatCurrency, formatDate, formatDateTime, formatTime, recordTitle } from "../utils/format";
 import { RecordForm } from "./RecordForm";
 import { API_BASE, getModuleRecord, listModule } from "../api/client";
 
@@ -17,10 +17,14 @@ type DetailDrawerProps = {
   onSaved?: () => void;
 };
 
-function displayValue(key: string, value: unknown) {
+function displayValue(field: FieldDefinition, value: unknown) {
   if (value === null || value === undefined || value === "") {
     return "";
   }
+  if (field.type === "time") {
+    return formatTime(value);
+  }
+  const key = field.key;
   if (key.includes("date") || key.endsWith("_at") || key.includes("expiry")) {
     return key.endsWith("_at") ? formatDateTime(value) : formatDate(value);
   }
@@ -159,7 +163,7 @@ export function DetailDrawer({ open, mode, definition, record, forcedStructureId
           <>
             <div className="detail-grid">
               {detailFields.map((field) => {
-                const value = field.relation ? relationLabels[field.key] ?? "" : displayValue(field.key, record[field.key]);
+                const value = field.relation ? relationLabels[field.key] ?? "" : displayValue(field, record[field.key]);
                 return (
                   <div className="detail-row" key={field.key}>
                     <span>{field.label}</span>

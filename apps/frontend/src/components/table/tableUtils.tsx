@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { FieldDefinition, ModuleDefinition } from "@parking/shared";
-import { formatCurrency, formatDate, formatDateTime } from "../../utils/format";
+import { formatCurrency, formatDate, formatDateTime, formatTime } from "../../utils/format";
 import type { FilterState, RelationMap } from "./types";
 
 export const ALL_LEVELS_OPTION = "All Levels / Full Structure";
@@ -54,6 +54,9 @@ export function displayCell(field: FieldDefinition, value: unknown, relationMap:
   }
   if (field.type === "date") {
     return formatDate(value);
+  }
+  if (field.type === "time") {
+    return formatTime(value);
   }
   if (field.type === "datetime" || field.key.endsWith("_at")) {
     return formatDateTime(value);

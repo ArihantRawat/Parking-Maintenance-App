@@ -369,7 +369,7 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
       <input
         className="cell-editor"
         autoFocus
-        type={field.type === "number" ? "number" : field.type === "date" ? "date" : "text"}
+        type={field.type === "number" ? "number" : field.type === "date" ? "date" : field.type === "time" ? "time" : "text"}
         value={editing.value}
         onChange={(event) => setEditing({ ...editing, value: event.target.value })}
         onBlur={commitEdit}

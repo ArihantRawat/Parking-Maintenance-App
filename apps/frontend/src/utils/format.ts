@@ -24,6 +24,26 @@ export function formatDateTime(value: unknown) {
   return date.toLocaleString();
 }
 
+export function formatTime(value: unknown) {
+  if (!value) {
+    return "";
+  }
+  const text = String(value).trim();
+  const twelveHour = text.match(/^(\d{1,2}):(\d{2})\s*([AP]M)$/i);
+  if (twelveHour) {
+    return `${Number(twelveHour[1])}:${twelveHour[2]} ${twelveHour[3].toUpperCase()}`;
+  }
+  const twentyFourHour = text.match(/^(\d{1,2}):(\d{2})$/);
+  if (!twentyFourHour) {
+    return text;
+  }
+  const hours = Number(twentyFourHour[1]);
+  const minutes = twentyFourHour[2];
+  const meridiem = hours >= 12 ? "PM" : "AM";
+  const displayHours = hours % 12 || 12;
+  return `${displayHours}:${minutes} ${meridiem}`;
+}
+
 export function formatCurrency(value: unknown) {
   const numberValue = Number(value ?? 0);
   return new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(numberValue);

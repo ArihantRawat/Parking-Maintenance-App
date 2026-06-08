@@ -1,4 +1,4 @@
-export type FieldType = "text" | "textarea" | "number" | "date" | "datetime" | "enum" | "boolean";
+export type FieldType = "text" | "textarea" | "number" | "date" | "time" | "datetime" | "enum" | "boolean";
 
 export type FilterType = "text" | "enum" | "date" | "number";
 
@@ -436,7 +436,7 @@ export const moduleDefinitions: ModuleDefinition[] = [
     defaultSort: "purchase_date",
     searchFields: ["id", "entity_type", "item_type", "description", "status", "invoice_number", "notes"],
     fields: [
-      optionalStructureField,
+      structureField,
       { key: "entity_type", label: "Related Type", type: "enum", table: true, form: true, editable: true, enumValues: ["materials", "services", "supplies", "other"], filter: "enum" },
       { key: "entity_id", label: "Related ID", type: "number", table: false, form: false, editable: false },
       { key: "vendor_id", label: "Vendor Name", type: "number", table: true, form: true, editable: true, filter: "enum", relation: "vendors", relationLabel: "name" },
@@ -459,20 +459,20 @@ export const moduleDefinitions: ModuleDefinition[] = [
     label: "Scheduler",
     singular: "Scheduled Reminder",
     description: "Scheduled email reminders for maintenance work and follow-ups.",
-    supportsStructure: true,
+    supportsStructure: false,
     statusField: "status",
     defaultSort: "reminder_date",
     searchFields: ["title", "message", "event_type", "reminder_type", "status", "frequency", "email_to", "notes"],
     fields: [
-      structureField,
+      optionalStructureField,
       { key: "title", label: "Event", type: "text", table: true, form: true, editable: true, required: true, filter: "text", placeholder: "Example: Quarterly sweeping follow-up" },
       { key: "message", label: "Message", type: "textarea", table: true, form: true, editable: true, filter: "text" },
       { key: "event_type", label: "Event Type", type: "enum", table: true, form: true, editable: true, enumValues: typeValues.reminderEvent, filter: "enum" },
       { key: "reminder_type", label: "Reminder Type", type: "enum", table: true, form: true, editable: true, enumValues: typeValues.reminderType, filter: "enum" },
       { key: "reminder_date", label: "Date", type: "date", table: true, form: true, editable: true, filter: "date" },
-      { key: "reminder_time", label: "Time", type: "text", table: true, form: true, editable: true, placeholder: "Example: 09:00 AM" },
+      { key: "reminder_time", label: "Time", type: "time", table: true, form: true, editable: true },
       { key: "frequency", label: "Frequency", type: "enum", table: true, form: true, editable: true, enumValues: typeValues.reminderFrequency, filter: "enum" },
-      { key: "email_to", label: "Email To", type: "text", table: true, form: true, editable: true, filter: "text", placeholder: "name@example.com" },
+      { key: "email_to", label: "Email To", type: "text", table: true, form: true, editable: true, required: true, filter: "text", placeholder: "name@example.com" },
       { key: "status", label: "Email Status", type: "enum", table: true, form: false, editable: false, enumValues: statusValues.reminder, filter: "enum" },
       { key: "entity_type", label: "Linked Type", type: "enum", table: false, form: false, editable: false, enumValues: typeValues.reminderType, filter: "enum" },
       { key: "entity_id", label: "Linked Record", type: "number", table: false, form: false, editable: false },
@@ -494,7 +494,7 @@ export const moduleDefinitions: ModuleDefinition[] = [
     defaultSort: "created_at",
     searchFields: ["id", "entity_type", "file_name", "file_path", "mime_type", "attachment_type", "before_after", "status", "notes"],
     fields: [
-      optionalStructureField,
+      structureField,
       { key: "entity_type", label: "Related Module", type: "text", table: true, form: true, editable: true, filter: "text" },
       { key: "entity_id", label: "Related ID", type: "number", table: true, form: true, editable: true, filter: "number" },
       { key: "file_name", label: "File Name", type: "text", table: true, form: true, editable: true, required: true, filter: "text" },
