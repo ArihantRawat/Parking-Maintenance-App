@@ -14,9 +14,11 @@ import { createReportsRouter } from "./routes/reports.js";
 import { createAttachmentRouter } from "./routes/attachments.js";
 import { createReminderActionsRouter } from "./routes/reminders.js";
 import { createInspectionActionsRouter } from "./routes/inspections.js";
+import { startScheduler } from "./services/scheduler.js";
 
 migrate();
 seedIfEmpty();
+startScheduler();
 
 const app = express();
 

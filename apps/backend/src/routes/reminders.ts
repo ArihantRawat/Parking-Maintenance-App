@@ -1,9 +1,9 @@
 import { Router } from "express";
 import { modulesByKey } from "@parking/shared";
-import { db, nowIso, transaction } from "../db/database.js";
+import { db, transaction } from "../db/database.js";
 import { asyncHandler, HttpError, sendData } from "../utils/api.js";
-import { createRecord, getRecord, updateRecord } from "./crud.js";
-import { isSmtpConfigured, sendReminderEmail } from "../services/mail.js";
+import { createRecord, getRecord } from "./crud.js";
+import { sendScheduledReminder } from "../services/scheduler.js";
 
 const offsets = [30, 7, 1];
 
@@ -119,66 +119,7 @@ export function createReminderActionsRouter() {
         throw new HttpError(400, "Recipient email is required when sending a reminder. Add Email To on the reminder or enter one before sending.");
       }
 
-      if (!isSmtpConfigured()) {
-        const failed = updateRecord(modulesByKey.reminders, Number(req.params.id), {
-          status: "failed",
-          email_to: to,
-          notes: `${reminder.notes ?? ""}\nEmail failed at ${nowIso()}: SMTP is not configured.`
-        });
-        sendData(res, {
-          sent: false,
-          emailConfigured: false,
-          reminder: failed,
-          message: "SMTP is not configured; reminder remains local-only."
-        });
-        return;
-      }
-
-      const structure = reminder.structure_id ? (db.prepare("SELECT name FROM structures WHERE id = ?").get(reminder.structure_id) as { name?: string } | undefined) : undefined;
-      const scheduledFor = [reminder.reminder_date, reminder.reminder_time].filter(Boolean).join(" at ");
-      const body = [
-        "Hello,",
-        "",
-        "This is a scheduled reminder from the Parking Structure Maintenance App.",
-        "",
-        "Reminder Details",
-        "----------------",
-        `Event: ${reminder.title ?? "Scheduled Reminder"}`,
-        `Message: ${reminder.message ?? "No message provided."}`,
-        `Structure: ${structure?.name ?? "Not assigned"}`,
-        `Scheduled For: ${scheduledFor || "Not specified"}`,
-        `Event Type: ${reminder.event_type ?? "general"}`,
-        `Reminder Type: ${reminder.reminder_type ?? reminder.entity_type ?? "general"}`,
-        `Frequency: ${reminder.frequency ?? "once"}`,
-        "",
-        reminder.notes ? `Notes: ${reminder.notes}` : "",
-        "",
-        "Please review this reminder and take the appropriate action.",
-        "",
-        "Thank you,",
-        "Parking Structure Maintenance App"
-      ].join("\n");
-      try {
-        await sendReminderEmail(to, `Reminder: ${String(reminder.title ?? "Scheduled Reminder")}`, body);
-        const updated = updateRecord(modulesByKey.reminders, Number(req.params.id), {
-          status: "completed",
-          email_to: to,
-          notes: `${reminder.notes ?? ""}\nEmail sent successfully at ${nowIso()}.`
-        });
-        sendData(res, { sent: true, emailConfigured: true, reminder: updated });
-      } catch (err) {
-        const failed = updateRecord(modulesByKey.reminders, Number(req.params.id), {
-          status: "failed",
-          email_to: to,
-          notes: `${reminder.notes ?? ""}\nEmail failed at ${nowIso()}: ${err instanceof Error ? err.message : "Unknown email error"}`
-        });
-        sendData(res, {
-          sent: false,
-          emailConfigured: true,
-          reminder: failed,
-          message: err instanceof Error ? err.message : "Unable to send reminder email."
-        });
-      }
+      sendData(res, await sendScheduledReminder(reminder, to));
     })
   );
 

@@ -252,7 +252,7 @@ CREATE TABLE IF NOT EXISTS purchases (
 
 CREATE TABLE IF NOT EXISTS reminders (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  structure_id INTEGER NOT NULL REFERENCES structures(id) ON UPDATE CASCADE,
+  structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
   entity_type TEXT,
   entity_id INTEGER,
   title TEXT NOT NULL,
@@ -438,6 +438,32 @@ export function migrate() {
   addColumnIfMissing("reminders", "email_to", "TEXT");
   db.exec("UPDATE reminders SET status = 'scheduled' WHERE status IN ('pending','overdue','dismissed')");
   db.exec("UPDATE reminders SET status = 'completed' WHERE status = 'sent'");
+  db.exec("UPDATE reminders SET status = 'completed' WHERE status = 'scheduled' AND notes LIKE '%Email sent successfully%'");
+  rebuildTableIfColumnNotNull(
+    "reminders",
+    "structure_id",
+    `CREATE TABLE reminders_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      entity_type TEXT,
+      entity_id INTEGER,
+      title TEXT NOT NULL,
+      message TEXT,
+      event_type TEXT,
+      reminder_type TEXT,
+      reminder_date TEXT,
+      reminder_time TEXT,
+      frequency TEXT,
+      email_to TEXT,
+      offset_days INTEGER,
+      status TEXT NOT NULL DEFAULT 'scheduled',
+      source TEXT,
+      notes TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      archived_at TEXT
+    )`
+  );
   rebuildTableIfColumnNotNull(
     "signs",
     "sign_type",

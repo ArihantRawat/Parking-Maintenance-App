@@ -7,17 +7,18 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const root = path.resolve(__dirname, "..");
+const defaultDbPath = path.join(root, "data", "parking-maintenance.sqlite");
 
 export const config = {
-  port: Number(process.env.PORT ?? 4000),
+  port: Number(process.env.PORT || 4000),
   dataDir: path.join(root, "data"),
   storageDir: path.join(root, "storage"),
-  dbPath: process.env.SQLITE_PATH ?? path.join(root, "data", "parking-maintenance.sqlite"),
+  dbPath: process.env.SQLITE_PATH || defaultDbPath,
   smtp: {
     host: process.env.SMTP_HOST,
-    port: Number(process.env.SMTP_PORT ?? 25),
+    port: Number(process.env.SMTP_PORT || 25),
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS,
-    from: process.env.SMTP_FROM ?? "parking-maintenance.local"
+    from: process.env.SMTP_FROM || "parking-maintenance.local"
   }
 };
