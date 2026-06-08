@@ -1,6 +1,8 @@
 import { modulesByKey, type ApiRecord, type FieldDefinition, type ModuleDefinition, type ModuleKey } from "@parking/shared";
 import { useEffect, useMemo, useState } from "react";
 import { createModuleRecord, getModuleRecord, listModule, uploadAttachment } from "../api/client";
+import { TimePickerField } from "./forms/TimePickerField";
+import { ALL_LEVELS_OPTION, fileKey, initialValue, parseLevels } from "./forms/recordFormUtils";
 import { recordTitle } from "../utils/format";
 
 type RecordFormProps = {
@@ -13,35 +15,6 @@ type RecordFormProps = {
 };
 
 type RelationOptions = Record<string, ApiRecord[]>;
-
-const ALL_LEVELS_OPTION = "All Levels / Full Structure";
-
-function fileKey(file: File) {
-  return `${file.name}:${file.size}:${file.lastModified}`;
-}
-
-function parseLevels(value: unknown) {
-  return String(value ?? "")
-    .split(/[\n,]/)
-    .map((level) => level.trim())
-    .filter(Boolean);
-}
-
-function initialValue(field: FieldDefinition, record?: ApiRecord, forcedStructureId?: number) {
-  if (field.key === "structure_id" && forcedStructureId) {
-    return forcedStructureId;
-  }
-  if (record?.[field.key] !== undefined && record?.[field.key] !== null) {
-    return record[field.key];
-  }
-  if (field.type === "number") {
-    return "";
-  }
-  if (field.type === "enum") {
-    return field.enumValues?.[0] ?? "";
-  }
-  return "";
-}
 
 export function RecordForm({ definition, initial, forcedStructureId, onSubmit, onSaved, submitLabel = "Save" }: RecordFormProps) {
   const editableFields = useMemo(
@@ -275,6 +248,10 @@ export function RecordForm({ definition, initial, forcedStructureId, onSubmit, o
           ))}
         </select>
       );
+    }
+
+    if (field.type === "time") {
+      return <TimePickerField value={value} onChange={(nextValue) => setValue(field.key, nextValue)} />;
     }
 
     return (
