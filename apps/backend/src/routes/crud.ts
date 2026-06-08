@@ -81,7 +81,8 @@ function sanitizePayload(definition: ModuleDefinition, body: Record<string, unkn
         throw new HttpError(400, `${field.label} is required.`);
       }
     }
-    if (definition.supportsStructure && !output.structure_id) {
+    const structureField = writableFields(definition).find((field) => field.key === "structure_id");
+    if (definition.supportsStructure && structureField?.required && !output.structure_id) {
       throw new HttpError(400, "Structure is required.");
     }
   }
@@ -244,20 +245,11 @@ export function updateRecord(definition: ModuleDefinition, id: number, body: Rec
   });
 }
 
-export function archiveRecord(definition: ModuleDefinition, id: number) {
+export function deleteRecord(definition: ModuleDefinition, id: number) {
   const existing = getRecord(definition, id);
   return transaction(() => {
-    if (definition.key === "structures") {
-      db.prepare("UPDATE structures SET status = 'inactive', updated_at = ? WHERE id = ?").run(nowIso(), id);
-    } else if (archiveTables.has(definition.tableName)) {
-      db.prepare(`UPDATE ${definition.tableName} SET archived_at = ?, updated_at = ? WHERE id = ?`).run(nowIso(), nowIso(), id);
-    } else if (definition.statusField) {
-      db.prepare(`UPDATE ${definition.tableName} SET ${definition.statusField} = 'inactive', updated_at = ? WHERE id = ?`).run(nowIso(), id);
-    }
-    const row = getRecord(definition, id);
-    recordAudit(definition, id, "archived", row, `${definition.singular} archived or deactivated.`);
-    recordActivity(definition, id, "archived", { ...existing, ...row });
-    return row;
+    db.prepare(`DELETE FROM ${definition.tableName} WHERE id = ?`).run(id);
+    return existing;
   });
 }
 
@@ -365,7 +357,7 @@ export function createCrudRouter(definition: ModuleDefinition) {
   router.delete(
     "/:id",
     asyncHandler((req, res) => {
-      sendData(res, archiveRecord(definition, Number(req.params.id)));
+      sendData(res, deleteRecord(definition, Number(req.params.id)));
     })
   );
 
