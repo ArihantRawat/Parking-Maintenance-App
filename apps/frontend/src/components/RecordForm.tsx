@@ -165,7 +165,7 @@ export function RecordForm({ definition, initial, forcedStructureId, onSubmit, o
 
   async function handleRelationChange(field: FieldDefinition, value: string) {
     if (field.relation === "vendors" && value === "__other__") {
-      const vendorName = window.prompt("Enter the new vendor name");
+      const vendorName = window.prompt("Enter a name for the new vendor");
       const name = vendorName?.trim();
       if (!name) {
         return;
@@ -198,7 +198,7 @@ export function RecordForm({ definition, initial, forcedStructureId, onSubmit, o
               {optionLabel(field, option)}
             </option>
           ))}
-          {field.relation === "vendors" ? <option value="__other__">Other - add vendor</option> : null}
+          {field.relation === "vendors" ? <option value="__other__">Other (add vendor)</option> : null}
         </select>
       );
     }
@@ -296,7 +296,7 @@ export function RecordForm({ definition, initial, forcedStructureId, onSubmit, o
               }}
             />
           </label>
-          <strong>{files.length} selected</strong>
+          <strong>{files.length === 0 ? "No files selected" : files.length === 1 ? "1 file selected" : `${files.length} files selected`}</strong>
         </div>
         {files.length > 0 ? (
           <div className="selected-file-list">

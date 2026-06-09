@@ -47,13 +47,13 @@ export function SearchPage() {
     <div className="page-stack">
       <section className="dashboard-heading">
         <div>
-          <h1>Global Search</h1>
-          <p>Search names, labels, vendors, status, dates, and notes across modules.</p>
+          <h1>Search</h1>
+          <p>Search across names, labels, vendors, statuses, dates, and notes.</p>
         </div>
       </section>
       <form className="search-page-form" onSubmit={submit}>
         <Search size={18} />
-        <input value={input} onChange={(event) => setInput(event.target.value)} placeholder="Search records" />
+        <input value={input} onChange={(event) => setInput(event.target.value)} placeholder="Search by name, vendor, note, or status" />
         <button className="primary-button" type="submit">
           Search
         </button>
@@ -67,7 +67,7 @@ export function SearchPage() {
                 <Link to={linkFor(group, record)} className="search-result" key={String(record.id)}>
                   <div>
                     <strong>{recordTitle(record)}</strong>
-                    <span>{String(record.structure_name ?? "Global")}</span>
+                    <span>{String(record.structure_name ?? "Not tied to a structure")}</span>
                   </div>
                   {record.status ? <StatusBadge value={record.status} /> : null}
                 </Link>

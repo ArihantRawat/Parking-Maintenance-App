@@ -1,6 +1,6 @@
 import { Inbox } from "lucide-react";
 
-export function EmptyState({ title = "No records found" }: { title?: string }) {
+export function EmptyState({ title = "No matching records found" }: { title?: string }) {
   return (
     <div className="empty-state">
       <Inbox size={22} />

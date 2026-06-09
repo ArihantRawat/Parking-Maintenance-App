@@ -135,7 +135,7 @@ export function DetailDrawer({ open, mode, definition, record, forcedStructureId
     return null;
   }
 
-  const title = mode === "add" ? `Add ${definition.singular}` : record ? recordTitle(record) : definition.singular;
+  const title = mode === "add" ? `New ${definition.singular}` : record ? recordTitle(record) : definition.singular;
   const isAddMode = mode === "add";
 
   return (
@@ -154,7 +154,7 @@ export function DetailDrawer({ open, mode, definition, record, forcedStructureId
             <p>{definition.label}</p>
             <h2>{title}</h2>
           </div>
-          <button className="icon-button" onClick={onClose} aria-label="Close drawer" title="Close">
+          <button className="icon-button" onClick={onClose} aria-label="Close panel" title="Close">
             <X size={18} />
           </button>
         </div>
@@ -183,10 +183,10 @@ export function DetailDrawer({ open, mode, definition, record, forcedStructureId
                       <article key={String(attachment.id)} className="attachment-preview-card">
                         {mime.startsWith("image/") ? <img src={url} alt={String(attachment.file_name ?? "Attachment")} /> : null}
                         {mime.startsWith("video/") ? <video src={url} controls /> : null}
-                        {!mime.startsWith("image/") && !mime.startsWith("video/") ? <span>Open file</span> : null}
+                        {!mime.startsWith("image/") && !mime.startsWith("video/") ? <span>Open attachment</span> : null}
                         <strong>{String(attachment.file_name ?? "Attachment")}</strong>
                         <a href={url} target="_blank" rel="noreferrer">
-                          Open
+                          Open attachment
                         </a>
                       </article>
                     );

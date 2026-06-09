@@ -264,7 +264,7 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
     const wasAdd = drawer.mode === "add";
     setDrawer({ open: false, mode: "view" });
     if (wasAdd) {
-      setToast({ id: Date.now(), message: `${definition.singular} Successfully Created.` });
+      setToast({ id: Date.now(), message: `${definition.singular} created successfully.` });
     }
   }
 
@@ -282,7 +282,7 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
   }
 
   async function deleteRow(row: ApiRecord) {
-    if (!window.confirm(`Delete ${definition.singular} "${recordTitle(row)}"? This cannot be undone.`)) {
+    if (!window.confirm(`Delete ${definition.singular} "${recordTitle(row)}"? This action cannot be undone.`)) {
       return;
     }
     try {
@@ -312,17 +312,17 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
 
   async function sendReminder(row: ApiRecord) {
     const existingEmail = String(row.email_to ?? "").trim();
-    const email = existingEmail || window.prompt("Enter the email address for this reminder")?.trim();
+    const email = existingEmail || window.prompt("Enter an email address for this reminder")?.trim();
     if (!email) {
       return;
     }
     try {
       const result = await sendReminderEmail(Number(row.id), email);
       const payload = result.data as ApiRecord & { sent?: boolean; emailConfigured?: boolean; message?: string };
-      window.alert(payload.sent ? "Scheduler email sent and marked completed." : `Scheduler email failed: ${String(payload.message ?? "No email was sent.")}`);
+      window.alert(payload.sent ? "Reminder email sent and marked complete." : `Reminder email failed: ${String(payload.message ?? "No email was sent.")}`);
       loadRows();
     } catch (err) {
-      window.alert(err instanceof Error ? err.message : "Unable to send reminder email.");
+      window.alert(err instanceof Error ? err.message : "Unable to send the reminder email.");
     }
   }
 
@@ -401,7 +401,7 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
                 setSearch(event.target.value);
                 setPage(1);
               }}
-              placeholder="Search"
+              placeholder="Search records"
             />
           </div>
           <button className="icon-text-button" onClick={() => setDrawer({ open: true, mode: "add" })}>
@@ -541,7 +541,7 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
           </tbody>
         </table>
         {!loading && rows.length === 0 ? <EmptyState /> : null}
-        {loading ? <div className="table-loading">Loading</div> : null}
+        {loading ? <div className="table-loading">Loading records...</div> : null}
       </div>
 
       <div className="pagination-row">

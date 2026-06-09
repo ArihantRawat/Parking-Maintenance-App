@@ -7,7 +7,7 @@ export function StructureList() {
       <section className="dashboard-heading">
         <div>
           <h1>Structures</h1>
-          <p>Parking structures are the root entity for all traceable records.</p>
+          <p>Create and manage the structures that the rest of the records belong to.</p>
         </div>
       </section>
       <AdvancedTable definition={modulesByKey.structures} />

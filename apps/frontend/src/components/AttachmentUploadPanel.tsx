@@ -46,13 +46,13 @@ export function AttachmentUploadPanel({ structureId, onUploaded }: { structureId
     <section className="upload-panel">
       <div className="section-header">
         <div>
-          <h2>Upload Attachment</h2>
-          <p>Local file storage linked to this structure.</p>
+          <h2>Upload Attachments</h2>
+          <p>Upload files and link them to this structure.</p>
         </div>
       </div>
       <form className="upload-form" onSubmit={submit}>
         <label>
-          <span>File</span>
+          <span>Files</span>
           <input type="file" multiple accept="image/*,video/*" onChange={(event) => setFiles(Array.from(event.target.files ?? []))} />
         </label>
         <label>
@@ -60,7 +60,7 @@ export function AttachmentUploadPanel({ structureId, onUploaded }: { structureId
           <input value={entityType} onChange={(event) => setEntityType(event.target.value)} />
         </label>
         <label>
-          <span>Related ID</span>
+          <span>Related Record ID</span>
           <input type="number" value={entityId} onChange={(event) => setEntityId(event.target.value)} />
         </label>
         <label>
@@ -70,7 +70,7 @@ export function AttachmentUploadPanel({ structureId, onUploaded }: { structureId
             onChange={(event) => {
               const selected = event.target.value;
               if (selected === "other") {
-                const customType = window.prompt("Enter the attachment type name");
+                const customType = window.prompt("Enter a name for this attachment type");
                 const customValue = customType?.trim();
                 if (customValue) {
                   setAttachmentType(customValue);

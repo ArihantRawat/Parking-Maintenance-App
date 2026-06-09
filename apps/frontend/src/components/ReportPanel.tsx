@@ -13,9 +13,9 @@ const reportTypes = [
   { key: "maintenance", label: "Maintenance" },
   { key: "cleaning", label: "Cleaning" },
   { key: "stripping", label: "Stripping" },
-  { key: "sign", label: "Sign" },
+  { key: "sign", label: "Signs" },
   { key: "equipment", label: "Equipment" },
-  { key: "purchase", label: "Purchase" },
+  { key: "purchase", label: "Purchases" },
   { key: "structure-summary", label: "Structure Summary" },
   { key: "overdue-task", label: "Overdue Tasks" },
   { key: "cost-summary", label: "Cost Summary" }
@@ -42,7 +42,7 @@ export function ReportPanel({ structureId }: { structureId?: number }) {
       <div className="section-header">
         <div>
           <h2>Reports</h2>
-          <p>Filtered local exports for operational reporting.</p>
+          <p>Download filtered Excel or PDF reports from the current results.</p>
         </div>
         <div className="toolbar-actions">
           <a className="icon-text-button" href={reportDownloadUrl(reportType, "xlsx", params)}>
@@ -106,13 +106,13 @@ export function ReportPanel({ structureId }: { structureId?: number }) {
             ))}
           </tbody>
         </table>
-        {rows.length === 0 ? <EmptyState title="No report rows" /> : null}
+        {rows.length === 0 ? <EmptyState title="No report data found" /> : null}
       </div>
       <div className="pagination-row">
-        <span>{rows.length} report rows</span>
+        <span>{rows.length} rows</span>
         <a className="text-button" href={reportDownloadUrl(reportType, "xlsx", params)}>
           <Download size={14} />
-          Export filtered rows
+          Export current results
         </a>
       </div>
     </section>
