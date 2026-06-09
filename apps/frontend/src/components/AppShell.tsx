@@ -3,11 +3,11 @@ import { BellRing, Building2, CalendarDays, ClipboardList, Clock3, Home, Search 
 
 const navItems = [
   { to: "/", label: "Home", icon: Home },
-  { to: "/structures", label: "Structures", icon: Building2 },
-  { to: "/activity-timeline", label: "Activity Timeline", icon: Clock3 },
   { to: "/search", label: "Search", icon: Search },
   { to: "/calendar", label: "Calendar", icon: CalendarDays },
-  { to: "/scheduler", label: "Scheduler", icon: BellRing }
+  { to: "/activity-timeline", label: "Activity Timeline", icon: Clock3 },
+  { to: "/scheduler", label: "Scheduler", icon: BellRing },
+  { to: "/structures", label: "Structures", icon: Building2 }
 ];
 
 export function AppShell() {
