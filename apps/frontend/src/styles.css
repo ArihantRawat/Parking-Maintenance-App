@@ -81,6 +81,28 @@ a {
   min-height: 42px;
 }
 
+.brand-link {
+  text-decoration: none;
+  color: inherit;
+  border-radius: 8px;
+  transition: background-color 0.15s ease;
+}
+
+.brand-link:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.brand-icon {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.brand-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
 .brand-block > div {
   display: grid;
   gap: 1px;

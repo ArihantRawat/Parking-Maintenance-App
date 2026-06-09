@@ -57,10 +57,10 @@ export function SearchPage() {
         <div className="search-hero-copy">
           <span className="search-hero-kicker">
             <Sparkles size={14} />
-            Unified lookup
+            Global Search
           </span>
           <h1>Search</h1>
-          <p>Search across structures, assets, vendors, statuses, dates, and notes from one page</p>
+          <p>Find records across structures, parking spaces, signs, equipment, cleaning and stripping logs, purchases, reminders, and vendors</p>
         </div>
         <div className="search-hero-stats">
           <div>
@@ -77,7 +77,7 @@ export function SearchPage() {
         <form className="search-page-form search-page-form-large" onSubmit={submit}>
           <div className="search-input-wrap">
             <Search size={18} />
-            <input value={input} onChange={(event) => setInput(event.target.value)} placeholder="Search by structure, vendor, note, status, or keyword" />
+            <input value={input} onChange={(event) => setInput(event.target.value)} placeholder="Search by name, location, type, status, vendor, or notes" />
           </div>
           <div className="search-form-actions">
             {input ? (
@@ -91,12 +91,12 @@ export function SearchPage() {
           </div>
         </form>
         <div className="search-helper-row">
-          <span>Try names, vendors, sign messages, statuses, or notes</span>
-          {q ? <strong>{loading ? "Searching..." : `${totalResults} results for "${q}"`}</strong> : <strong>Start with a keyword to search across the app</strong>}
+          <span>Try a structure name, sign type, equipment status, vendor contact, or note text</span>
+          {q ? <strong>{loading ? "Searching..." : `${totalResults} results for "${q}"`}</strong> : <strong>Enter a keyword to search all modules at once</strong>}
         </div>
       </section>
       <div className="search-results">
-        {!q && !loading ? <EmptyState title="Search across all records" /> : null}
+        {!q && !loading ? <EmptyState title="Enter a keyword above to search all modules" /> : null}
         {q && !loading && totalResults === 0 ? <EmptyState title={`No results found for "${q}"`} /> : null}
         {loading ? <div className="table-loading">Searching records...</div> : null}
         {groups.map((group) => (

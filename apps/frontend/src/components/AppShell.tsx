@@ -1,4 +1,4 @@
-import { NavLink, Outlet } from "react-router-dom";
+import { Link, NavLink, Outlet } from "react-router-dom";
 import { BellRing, Building2, CalendarDays, ClipboardList, Clock3, Home, Search } from "lucide-react";
 
 const navItems = [
@@ -14,13 +14,15 @@ export function AppShell() {
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <div className="brand-block">
-          <ClipboardList size={24} />
+        <Link to="/" className="brand-block brand-link" aria-label="Go to home dashboard">
+          <span className="brand-icon" aria-hidden="true">
+            <ClipboardList strokeWidth={1.75} />
+          </span>
           <div>
             <strong>Parking Maintenance</strong>
             <span>Operations</span>
           </div>
-        </div>
+        </Link>
         <nav>
           {navItems.map((item) => {
             const Icon = item.icon;
