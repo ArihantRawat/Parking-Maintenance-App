@@ -81,18 +81,18 @@ export const statusValues = {
 };
 
 export const typeValues = {
-  space: ["ADA", "Reserved", "Unreserved", "Carpool", "EV", "Other"],
-  sign: ["ADA", "Reserved", "Unreserved", "Carpool", "EV", "Directional", "Informational", "Warning", "Other"],
+  space: ["None", "ADA", "Reserved", "Unreserved", "Carpool", "EV", "Other"],
+  sign: ["None", "ADA", "Reserved", "Unreserved", "Carpool", "EV", "Directional", "Informational", "Warning", "Other"],
   condition: ["excellent", "good", "fair", "poor", "damaged", "needs repair"],
   priority: ["low", "medium", "high", "emergency"],
   cleaningCategory: ["spot cleaning", "annual/deep cleaning"],
-  cleaningType: ["sweeping", "pressure washing", "trash removal", "surface cleaning", "stain removal", "other"],
-  strippingType: ["roof stripping", "paint stripping", "line removal", "surface stripping", "elevator cleaning", "other"],
+  cleaningType: ["none", "sweeping", "pressure washing", "trash removal", "surface cleaning", "stain removal", "other"],
+  strippingType: ["none", "roof stripping", "paint stripping", "line removal", "surface stripping", "elevator cleaning", "other"],
   frequency: ["Annual", "Quarterly", "Monthly"],
-  reminderType: ["cleaning", "stripping", "equipment", "sign replacement", "maintenance", "purchase", "general"],
-  reminderEvent: ["scheduled work", "completed work", "service due", "warranty expiry", "replacement due", "follow up", "general"],
+  reminderType: ["none", "cleaning", "stripping", "equipment", "sign replacement", "maintenance", "purchase", "general"],
+  reminderEvent: ["none", "scheduled work", "completed work", "service due", "warranty expiry", "replacement due", "follow up", "general"],
   reminderFrequency: ["once", "daily", "weekly", "monthly", "quarterly", "annually"],
-  purchaseItem: ["Material", "Service", "Supply", "Other"],
+  purchaseItem: ["None", "Material", "Service", "Supply", "Other"],
   inspectionStatus: ["passed", "needs action", "failed", "follow-up required"],
   attachmentType: ["photo", "document", "invoice", "before photo", "after photo", "other"]
 };
@@ -127,7 +127,7 @@ export const moduleDefinitions: ModuleDefinition[] = [
     route: "structures",
     label: "Structures",
     singular: "Structure",
-    description: "Physical parking sites such as garages, lots, campuses, or buildings.",
+    description: "Physical parking sites such as parking buildings, lots, or garages.",
     supportsStructure: false,
     statusField: "status",
     defaultSort: "name",
@@ -430,7 +430,7 @@ export const moduleDefinitions: ModuleDefinition[] = [
     route: "purchases",
     label: "Purchases",
     singular: "Purchase",
-    description: "Purchase tracking across signs, equipment, materials, and services.",
+    description: "Track purchase requests, orders, deliveries, installations, and costs.",
     supportsStructure: true,
     statusField: "status",
     defaultSort: "purchase_date",
