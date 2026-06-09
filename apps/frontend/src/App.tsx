@@ -1,5 +1,6 @@
 import { Route, Routes } from "react-router-dom";
 import { AppShell } from "./components/AppShell";
+import { ActivityTimelinePage } from "./pages/ActivityTimelinePage";
 import { CalendarPage } from "./pages/CalendarPage";
 import { HomeDashboard } from "./pages/HomeDashboard";
 import { ReportsPage } from "./pages/ReportsPage";
@@ -16,6 +17,7 @@ export default function App() {
         <Route path="structures" element={<StructureList />} />
         <Route path="structures/:id" element={<StructureDashboard />} />
         <Route path="structures/:id/:tab" element={<StructureDashboard />} />
+        <Route path="activity-timeline" element={<ActivityTimelinePage />} />
         <Route path="search" element={<SearchPage />} />
         <Route path="calendar" element={<CalendarPage />} />
         <Route path="scheduler" element={<SchedulerPage />} />
