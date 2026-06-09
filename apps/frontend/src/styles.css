@@ -1991,6 +1991,10 @@ th.sticky-col {
   align-items: center;
   gap: 12px;
   padding: 0;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .search-input-wrap {
