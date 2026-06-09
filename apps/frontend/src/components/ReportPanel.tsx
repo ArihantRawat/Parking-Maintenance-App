@@ -9,6 +9,20 @@ function isIdColumn(column: string) {
   return column === "id" || column.endsWith("_id");
 }
 
+function formatReportCell(column: string, value: unknown) {
+  if (value === null || value === undefined || value === "") {
+    return "";
+  }
+  if (column.includes("cost")) {
+    return formatCurrency(value);
+  }
+  const preserveRaw = /name|title|label|location|email|notes|description|number|url|path|file|address|phone|actor|vendor|date|_at$/i;
+  if (preserveRaw.test(column)) {
+    return String(value);
+  }
+  return humanize(String(value));
+}
+
 const reportTypes = [
   { key: "maintenance", label: "Maintenance" },
   { key: "cleaning", label: "Cleaning" },
@@ -100,7 +114,7 @@ export function ReportPanel({ structureId }: { structureId?: number }) {
             {rows.slice(0, 25).map((row, index) => (
               <tr key={index}>
                 {columns.map((column) => (
-                  <td key={column}>{column.includes("cost") ? formatCurrency(row[column]) : String(row[column] ?? "")}</td>
+                  <td key={column}>{formatReportCell(column, row[column])}</td>
                 ))}
               </tr>
             ))}

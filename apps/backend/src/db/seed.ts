@@ -104,6 +104,7 @@ export function seedDatabase(options: { reset?: boolean } = {}) {
       {
         name: "Civic Center Garage",
         location: "100 Main Street",
+        type: "garage",
         levels: "1, 2, 3, 4, 5",
         description: "Five-level municipal parking garage serving city offices.",
         notes: "Priority site for council meeting nights."
@@ -111,6 +112,7 @@ export function seedDatabase(options: { reset?: boolean } = {}) {
       {
         name: "North Campus Lot",
         location: "455 College Avenue",
+        type: "lot",
         levels: "Surface",
         description: "Surface lot and EV charging area for north campus.",
         notes: "Snow-route access must remain clear."
@@ -118,6 +120,7 @@ export function seedDatabase(options: { reset?: boolean } = {}) {
       {
         name: "Harbor Point Structure",
         location: "88 Marina Boulevard",
+        type: "building",
         levels: "P1, P2, Roof",
         description: "Mixed visitor and employee structure near waterfront offices.",
         notes: "Salt air increases sign and equipment corrosion risk."

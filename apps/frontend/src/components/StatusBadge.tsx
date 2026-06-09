@@ -1,3 +1,5 @@
+import { humanize } from "../utils/format";
+
 type StatusBadgeProps = {
   value: unknown;
 };
@@ -13,5 +15,5 @@ export function StatusBadge({ value }: StatusBadgeProps) {
           ? "success"
           : "muted";
 
-  return <span className={`status-badge status-badge-${tone}`}>{String(value ?? "None")}</span>;
+  return <span className={`status-badge status-badge-${tone}`}>{humanize(String(value ?? "none"))}</span>;
 }

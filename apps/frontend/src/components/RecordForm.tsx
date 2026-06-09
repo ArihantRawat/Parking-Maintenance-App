@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { createModuleRecord, getModuleRecord, listModule, uploadAttachment } from "../api/client";
 import { TimePickerField } from "./forms/TimePickerField";
 import { ALL_LEVELS_OPTION, fileKey, initialValue, parseLevels } from "./forms/recordFormUtils";
-import { recordTitle } from "../utils/format";
+import { formatDisplayLabel, humanize, recordTitle } from "../utils/format";
 
 type RecordFormProps = {
   definition: ModuleDefinition;
@@ -240,10 +240,10 @@ export function RecordForm({ definition, initial, forcedStructureId, onSubmit, o
             setValue(field.key, selected);
           }}
         >
-          {hasCustomOption ? <option value={String(value)}>{String(value)}</option> : null}
+          {hasCustomOption ? <option value={String(value)}>{humanize(String(value))}</option> : null}
           {(field.enumValues ?? []).map((option) => (
             <option key={option} value={option}>
-              {option}
+              {humanize(option)}
             </option>
           ))}
         </select>
@@ -274,7 +274,7 @@ export function RecordForm({ definition, initial, forcedStructureId, onSubmit, o
         return (
           <label key={field.key} className={field.type === "textarea" ? "form-field form-field-wide" : "form-field"}>
             <span>
-              {field.label}
+              {formatDisplayLabel(field.label)}
               {field.required ? <strong> *</strong> : null}
             </span>
             {renderInput(field, value)}

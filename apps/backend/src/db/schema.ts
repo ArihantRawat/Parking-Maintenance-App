@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS structures (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   name TEXT NOT NULL,
   location TEXT,
+  type TEXT,
   levels TEXT,
   description TEXT,
   status TEXT NOT NULL DEFAULT 'active',
@@ -425,6 +426,7 @@ export function migrate() {
   addColumnIfMissing("sign_orders", "sign_type", "TEXT");
   addColumnIfMissing("sign_orders", "condition", "TEXT");
   addColumnIfMissing("structures", "levels", "TEXT");
+  addColumnIfMissing("structures", "type", "TEXT");
   addColumnIfMissing("equipment", "level", "TEXT");
   addColumnIfMissing("equipment", "vendor_name", "TEXT");
   addColumnIfMissing("equipment", "schedule_start_date", "TEXT");

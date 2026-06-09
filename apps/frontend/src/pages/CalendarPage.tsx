@@ -277,8 +277,8 @@ export function CalendarPage() {
                   {cell.day ? <strong>{cell.day}</strong> : null}
                   {dayEvents.slice(0, 4).map((event) => (
                     <button className={`calendar-event calendar-event-${event.module}`} key={event.id} type="button" onClick={() => setSelectedEvent(event)}>
-                      <span>{event.dateKind}</span>
-                      <strong>{event.title}</strong>
+                      <span>{humanize(event.dateKind)}</span>
+                      <strong>{humanize(event.title)}</strong>
                       <small>{event.structureName}</small>
                     </button>
                   ))}
@@ -300,10 +300,10 @@ export function CalendarPage() {
                   {column.events.map((event) => (
                     <button className={`calendar-event calendar-event-${event.module}`} key={event.id} type="button" onClick={() => setSelectedEvent(event)}>
                       <span>{formatDate(event.date)}</span>
-                      <strong>{event.title}</strong>
+                      <strong>{humanize(event.title)}</strong>
                       <small>
                         {event.structureName}
-                        {event.subtitle ? ` / ${event.subtitle}` : ""}
+                        {event.subtitle ? ` / ${humanize(event.subtitle)}` : ""}
                       </small>
                       {event.status ? <StatusBadge value={event.status} /> : null}
                     </button>
@@ -329,7 +329,7 @@ export function CalendarPage() {
                     {monthEvents.slice(0, 8).map((event) => (
                       <button className={`calendar-event calendar-event-${event.module}`} key={event.id} type="button" onClick={() => setSelectedEvent(event)}>
                         <span>{formatDate(event.date)}</span>
-                        <strong>{event.title}</strong>
+                        <strong>{humanize(event.title)}</strong>
                         <small>
                           {event.structureName}
                           {event.subtitle ? ` / ${event.subtitle}` : ""}

@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
 import { modulesByKey, type ApiRecord, type FieldDefinition, type ModuleDefinition, type ModuleKey } from "@parking/shared";
 import { StatusBadge } from "./StatusBadge";
-import { formatCurrency, formatDate, formatDateTime, formatTime, recordTitle } from "../utils/format";
+import { formatCurrency, formatDate, formatDateTime, formatTime, formatDisplayLabel, humanize, recordTitle } from "../utils/format";
 import { RecordForm } from "./RecordForm";
 import { API_BASE, getModuleRecord, listModule } from "../api/client";
 
@@ -30,6 +30,9 @@ function displayValue(field: FieldDefinition, value: unknown) {
   }
   if (key.includes("cost")) {
     return formatCurrency(value);
+  }
+  if (field.type === "enum") {
+    return humanize(String(value));
   }
   return String(value);
 }
@@ -166,7 +169,7 @@ export function DetailDrawer({ open, mode, definition, record, forcedStructureId
                 const value = field.relation ? relationLabels[field.key] ?? "" : displayValue(field, record[field.key]);
                 return (
                   <div className="detail-row" key={field.key}>
-                    <span>{field.label}</span>
+                    <span>{formatDisplayLabel(field.label)}</span>
                     {field.key === definition.statusField ? <StatusBadge value={record[field.key]} /> : <strong>{value}</strong>}
                   </div>
                 );

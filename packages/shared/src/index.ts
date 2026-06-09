@@ -81,6 +81,7 @@ export const statusValues = {
 };
 
 export const typeValues = {
+  structureType: ["building", "garage", "lot"],
   space: ["None", "ADA", "Reserved", "Unreserved", "Carpool", "EV", "Other"],
   sign: ["None", "ADA", "Reserved", "Unreserved", "Carpool", "EV", "Directional", "Informational", "Warning", "Other"],
   condition: ["excellent", "good", "fair", "poor", "damaged", "needs repair"],
@@ -131,10 +132,11 @@ export const moduleDefinitions: ModuleDefinition[] = [
     supportsStructure: false,
     statusField: "status",
     defaultSort: "name",
-    searchFields: ["name", "location", "status"],
+    searchFields: ["name", "location", "type", "status"],
     fields: [
       { key: "name", label: "Name", type: "text", table: true, form: true, editable: true, required: true, filter: "text" },
       { key: "location", label: "Location", type: "text", table: true, form: true, editable: true, filter: "text" },
+      { key: "type", label: "Type", type: "enum", table: true, form: true, editable: true, required: true, enumValues: typeValues.structureType, filter: "enum" },
       { key: "levels", label: "Levels/Floors", type: "text", table: true, form: true, editable: true, placeholder: "Example: P1, P2, Level 1, Roof" },
       { key: "description", label: "Description", type: "textarea", table: false, form: true, editable: true },
       { key: "status", label: "Status", type: "enum", table: true, form: true, editable: true, enumValues: statusValues.structure, filter: "enum" },

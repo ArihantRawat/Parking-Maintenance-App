@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { UploadCloud } from "lucide-react";
 import { uploadAttachment } from "../api/client";
+import { humanize } from "../utils/format";
 
 export function AttachmentUploadPanel({ structureId, onUploaded }: { structureId: number; onUploaded: () => void }) {
   const [files, setFiles] = useState<File[]>([]);
@@ -81,11 +82,11 @@ export function AttachmentUploadPanel({ structureId, onUploaded }: { structureId
             }}
           >
             {!["photo", "document", "invoice", "before photo", "after photo", "other"].includes(attachmentType) ? (
-              <option value={attachmentType}>{attachmentType}</option>
+              <option value={attachmentType}>{humanize(attachmentType)}</option>
             ) : null}
             {["photo", "document", "invoice", "before photo", "after photo", "other"].map((option) => (
               <option key={option} value={option}>
-                {option}
+                {humanize(option)}
               </option>
             ))}
           </select>
@@ -95,7 +96,7 @@ export function AttachmentUploadPanel({ structureId, onUploaded }: { structureId
           <select value={beforeAfter} onChange={(event) => setBeforeAfter(event.target.value)}>
             {["not applicable", "before", "after"].map((option) => (
               <option key={option} value={option}>
-                {option}
+                {humanize(option)}
               </option>
             ))}
           </select>

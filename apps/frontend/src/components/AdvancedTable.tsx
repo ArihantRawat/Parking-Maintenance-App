@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { ArrowDown, ArrowUp, Download, Edit3, ExternalLink, Mail, MoreVertical, Plus, RefreshCw, Search, Trash2 } from "lucide-react";
 import { modulesByKey, type ApiRecord, type FieldDefinition, type ModuleDefinition, type ModuleKey } from "@parking/shared";
 import { deleteModuleRecord, createModuleRecord, getModuleRecord, listModule, sendReminderEmail, updateModuleRecord } from "../api/client";
-import { recordTitle } from "../utils/format";
+import { formatDisplayLabel, humanize, recordTitle } from "../utils/format";
 import { StatusBadge } from "./StatusBadge";
 import { DetailDrawer } from "./DetailDrawer";
 import { EmptyState } from "./EmptyState";
@@ -359,7 +359,7 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
         >
           {(field.enumValues ?? []).map((option) => (
             <option key={option} value={option}>
-              {option}
+              {humanize(option)}
             </option>
           ))}
         </select>
@@ -431,8 +431,8 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
             <tr>
               {tableFields.map((field) => (
                 <th key={field.key}>
-                  <button className="sort-button" onClick={() => toggleSort(field.key)} title={`Sort by ${field.label}`}>
-                    {field.label}
+                  <button className="sort-button" onClick={() => toggleSort(field.key)} title={`Sort by ${formatDisplayLabel(field.label)}`}>
+                    {formatDisplayLabel(field.label)}
                     {sortBy === field.key ? sortDir === "asc" ? <ArrowUp size={12} /> : <ArrowDown size={12} /> : null}
                   </button>
                 </th>

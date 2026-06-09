@@ -188,7 +188,7 @@ export function Timeline({ structureId }: TimelineProps) {
     return (
       <button className="calendar-event calendar-event-activity" key={String(event.id)} type="button">
         <span>{humanize(String(event.event_type ?? event.entity_type ?? "activity"))}</span>
-        <strong>{String(event.title ?? "Activity")}</strong>
+        <strong>{humanize(String(event.title ?? "Activity"))}</strong>
         <small>
           {String(event.structure_name ?? "")}
           {event.actor ? ` / ${event.actor}` : ""}
@@ -296,7 +296,7 @@ export function Timeline({ structureId }: TimelineProps) {
               </div>
               <div>
                 <div className="timeline-item-header">
-                  <strong>{event.title}</strong>
+                  <strong>{humanize(String(event.title ?? ""))}</strong>
                   <StatusBadge value={event.status} />
                 </div>
                 <p>{event.description}</p>

@@ -49,8 +49,19 @@ export function formatCurrency(value: unknown) {
   return new Intl.NumberFormat(undefined, { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(numberValue);
 }
 
+export function capitalizeFirst(value: string) {
+  if (!value) {
+    return value;
+  }
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
 export function humanize(value: string) {
-  return value.replaceAll("-", " ").replaceAll("_", " ");
+  return capitalizeFirst(value.replaceAll("-", " ").replaceAll("_", " "));
+}
+
+export function formatDisplayLabel(value: unknown) {
+  return capitalizeFirst(String(value ?? "").trim());
 }
 
 export function recordTitle(record: Record<string, unknown>) {

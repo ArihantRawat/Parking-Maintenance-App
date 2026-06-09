@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import type { FieldDefinition, ModuleDefinition } from "@parking/shared";
-import { formatCurrency, formatDate, formatDateTime, formatTime } from "../../utils/format";
+import { formatCurrency, formatDate, formatDateTime, formatTime, humanize } from "../../utils/format";
 import type { FilterState, RelationMap } from "./types";
 
 export const ALL_LEVELS_OPTION = "All Levels / Full Structure";
@@ -69,6 +69,9 @@ export function displayCell(field: FieldDefinition, value: unknown, relationMap:
   }
   if (field.type === "number") {
     return String(value ?? "");
+  }
+  if (field.type === "enum") {
+    return humanize(String(value ?? ""));
   }
   return String(value ?? "");
 }

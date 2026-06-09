@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { ApiRecord } from "@parking/shared";
 import { modulesByKey } from "@parking/shared";
 import { listModule } from "../api/client";
-import { formatDate } from "../utils/format";
+import { formatDate, humanize } from "../utils/format";
 import { StatusBadge } from "./StatusBadge";
 
 export function StrippingCalendar({ structureId }: { structureId?: number }) {
@@ -43,7 +43,7 @@ export function StrippingCalendar({ structureId }: { structureId?: number }) {
             </div>
             {items.map((item) => (
               <article className="calendar-card" key={String(item.id)}>
-                <strong>{String(item.stripping_type ?? `Task #${item.id}`)}</strong>
+                <strong>{humanize(String(item.stripping_type ?? `Task #${item.id}`))}</strong>
                 <span>{formatDate(item.scheduled_date)}</span>
                 <p>{String(item.affected_area ?? item.area ?? "")}</p>
               </article>

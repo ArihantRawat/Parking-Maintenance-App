@@ -1,4 +1,4 @@
-import { formatCurrency, formatDate, formatDateTime } from "../../utils/format";
+import { formatCurrency, formatDate, formatDateTime, humanize } from "../../utils/format";
 
 export type GraphNode = {
   id: string;
@@ -50,6 +50,10 @@ export function formatDetailValue(key: string, value: unknown) {
   }
   if (key.includes("date") || key.includes("expiry")) {
     return formatDate(value);
+  }
+  const preserveRaw = /name|title|label|location|email|notes|description|number|url|path|file|address|phone|actor|vendor/i;
+  if (typeof value === "string" && !preserveRaw.test(key)) {
+    return humanize(value);
   }
   return String(value);
 }

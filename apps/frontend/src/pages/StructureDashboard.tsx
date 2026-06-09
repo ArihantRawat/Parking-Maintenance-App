@@ -8,7 +8,7 @@ import { ReportPanel } from "../components/ReportPanel";
 import { StrippingCalendar } from "../components/StrippingCalendar";
 import { Timeline } from "../components/Timeline";
 import { StatusBadge } from "../components/StatusBadge";
-import { recordTitle } from "../utils/format";
+import { humanize, recordTitle } from "../utils/format";
 
 const tabToDefinition = {
   signs: modulesByKey.signs,
@@ -81,7 +81,9 @@ export function StructureDashboard() {
             <span>{structure ? recordTitle(structure) : "Structure"}</span>
           </div>
           <h1>{structure ? recordTitle(structure) : "Structure"}</h1>
-          <p>{String(structure?.location ?? "")}</p>
+          <p>
+            {[structure?.type ? humanize(String(structure.type)) : "", String(structure?.location ?? "")].filter(Boolean).join(" · ")}
+          </p>
         </div>
         {structure ? <StatusBadge value={structure.status} /> : null}
       </section>
