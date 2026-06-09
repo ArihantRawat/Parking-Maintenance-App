@@ -16,8 +16,8 @@ export function AppShell() {
         <div className="brand-block">
           <ClipboardList size={24} />
           <div>
-            <strong>Parking Structure</strong>
-            <span>Maintenance</span>
+            <strong>Parking Maintenance</strong>
+            <span>Operations</span>
           </div>
         </div>
         <nav>
@@ -33,9 +33,6 @@ export function AppShell() {
         </nav>
       </aside>
       <main className="main-area">
-        <header className="topbar">
-          <div className="local-pill">Local SQLite</div>
-        </header>
         <div className="page-content">
           <Outlet />
         </div>
