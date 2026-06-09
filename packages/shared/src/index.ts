@@ -73,7 +73,7 @@ export const statusValues = {
   order: ["ordered", "delivered", "installed", "cancelled"],
   ticket: ["open", "in progress", "completed", "cancelled"],
   scheduled: ["scheduled", "ongoing", "completed", "cancelled"],
-  reminder: ["scheduled", "completed", "failed"],
+  reminder: ["scheduled", "sending", "completed", "failed"],
   purchase: ["requested", "ordered", "delivered", "installed", "cancelled", "paid"],
   attachment: ["active", "archived"],
   event: ["open", "scheduled", "completed", "cancelled", "info"],

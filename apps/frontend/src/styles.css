@@ -1141,8 +1141,31 @@ th.sticky-col {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  color: var(--teal);
-  background: #eaf5f4;
+}
+
+.timeline-type-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.timeline-type-swatch {
+  display: grid;
+  place-items: center;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.timeline-multi-menu button > span.timeline-type-swatch {
+  width: 14px;
+  height: 14px;
 }
 
 .timeline-item-header {
@@ -1842,7 +1865,8 @@ th.sticky-col {
 }
 
 .calendar-event-activity {
-  border-left-color: var(--teal);
+  border-left-width: 4px;
+  border-left-style: solid;
 }
 
 .calendar-event span {

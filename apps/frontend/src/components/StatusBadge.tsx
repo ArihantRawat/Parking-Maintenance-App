@@ -9,7 +9,7 @@ export function StatusBadge({ value }: StatusBadgeProps) {
   const tone =
     status.includes("open") || status.includes("overdue") || status.includes("damaged") || status.includes("emergency") || status.includes("repair")
       ? "danger"
-      : status.includes("progress") || status.includes("ongoing") || status.includes("ordered") || status.includes("scheduled") || status.includes("pending")
+      : status.includes("progress") || status.includes("ongoing") || status.includes("ordered") || status.includes("scheduled") || status.includes("pending") || status.includes("sending")
         ? "warning"
         : status.includes("completed") || status.includes("active") || status.includes("installed") || status.includes("passed") || status.includes("paid")
           ? "success"

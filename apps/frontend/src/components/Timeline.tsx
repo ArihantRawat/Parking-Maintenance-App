@@ -4,6 +4,7 @@ import type { ApiRecord } from "@parking/shared";
 import { modulesByKey } from "@parking/shared";
 import { fetchTimeline, listModule } from "../api/client";
 import { formatDateTime, humanize, recordTitle } from "../utils/format";
+import { activityTypeColor, activityTypeDotStyle, activityTypeStyles, activityTypeSwatchStyle } from "./timeline/activityTypeColors";
 import { StatusBadge } from "./StatusBadge";
 import { EmptyState } from "./EmptyState";
 import {
@@ -185,9 +186,16 @@ export function Timeline({ structureId }: TimelineProps) {
   }
 
   function renderCalendarEvent(event: ApiRecord) {
+    const entityType = String(event.entity_type ?? "");
+    const typeColor = activityTypeColor(entityType);
     return (
-      <button className="calendar-event calendar-event-activity" key={String(event.id)} type="button">
-        <span>{humanize(String(event.event_type ?? event.entity_type ?? "activity"))}</span>
+      <button
+        className="calendar-event calendar-event-activity"
+        key={String(event.id)}
+        type="button"
+        style={{ borderLeftColor: typeColor }}
+      >
+        <span style={{ color: typeColor }}>{humanize(String(event.event_type ?? (entityType || "activity")))}</span>
         <strong>{humanize(String(event.title ?? "Activity"))}</strong>
         <small>
           {String(event.structure_name ?? "")}
@@ -231,7 +239,9 @@ export function Timeline({ structureId }: TimelineProps) {
               </button>
               {activityTypes.map((type) => (
                 <button key={type} type="button" className={selectedActivityTypes.has(type) ? "active" : ""} onClick={() => toggleActivityType(type)}>
-                  {selectedActivityTypes.has(type) ? <Check size={14} /> : <span />}
+                  <span className="timeline-type-swatch" style={activityTypeSwatchStyle(type)} aria-hidden="true">
+                    {selectedActivityTypes.has(type) ? <Check size={10} color="#fff" strokeWidth={3} /> : null}
+                  </span>
                   {humanize(type)}
                 </button>
               ))}
@@ -289,9 +299,11 @@ export function Timeline({ structureId }: TimelineProps) {
       ) : null}
       {view === "timeline" ? (
         <div className={`timeline-list timeline-list-${layout}`}>
-          {sortedRows.map((event) => (
+          {sortedRows.map((event) => {
+            const entityType = String(event.entity_type ?? "");
+            return (
             <article className="timeline-item" key={String(event.id)}>
-              <div className="timeline-dot">
+              <div className="timeline-dot" style={activityTypeDotStyle(entityType)}>
                 <Clock size={15} />
               </div>
               <div>
@@ -302,13 +314,16 @@ export function Timeline({ structureId }: TimelineProps) {
                 <p>{event.description}</p>
                 <div className="timeline-meta">
                   <span>{formatDateTime(event.event_date)}</span>
-                  <span>{humanize(String(event.entity_type ?? ""))}</span>
+                  <span className="timeline-type-chip" style={activityTypeStyles(entityType)}>
+                    {humanize(entityType)}
+                  </span>
                   <span>{String(event.structure_name ?? "")}</span>
                   <span>{String(event.actor ?? "")}</span>
                 </div>
               </div>
             </article>
-          ))}
+            );
+          })}
           {!loading && sortedRows.length === 0 ? <EmptyState title="No timeline activity found" /> : null}
           {loading ? <div className="table-loading">Loading</div> : null}
         </div>

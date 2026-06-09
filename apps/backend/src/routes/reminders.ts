@@ -119,7 +119,7 @@ export function createReminderActionsRouter() {
         throw new HttpError(400, "Recipient email is required when sending a reminder. Add Email To on the reminder or enter one before sending.");
       }
 
-      sendData(res, await sendScheduledReminder(reminder, to));
+      sendData(res, await sendScheduledReminder(reminder, to, { manual: true }));
     })
   );
 
