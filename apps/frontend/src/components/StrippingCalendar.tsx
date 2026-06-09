@@ -31,7 +31,7 @@ export function StrippingCalendar({ structureId }: { structureId?: number }) {
       <div className="section-header">
         <div>
           <h2>Stripping Timeline</h2>
-          <p>Upcoming, ongoing, and completed stripping tasks.</p>
+          <p>Upcoming, ongoing, and completed stripping tasks</p>
         </div>
       </div>
       <div className="calendar-lanes">

@@ -52,7 +52,7 @@ function cellXml(value: unknown, rowIndex: number, columnIndex: number) {
 }
 
 function sheetXml(rows: WorkbookRow[]) {
-  const outputRows = rows.length > 0 ? rows : [{ message: "No records match the selected filters." }];
+  const outputRows = rows.length > 0 ? rows : [{ message: "No records match the selected filters" }];
   const columns = Object.keys(outputRows[0] ?? {});
   const header = `<row r="1">${columns.map((column, index) => cellXml(column, 1, index + 1)).join("")}</row>`;
   const body = outputRows

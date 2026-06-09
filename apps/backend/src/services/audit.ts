@@ -44,7 +44,7 @@ export function recordActivity(definition: ModuleDefinition, id: number, action:
     event_type: action,
     event_date: nowIso(),
     title,
-    description: `${definition.singular} ${action} locally.`,
+    description: `${definition.singular} ${action} locally`,
     status: String(row[definition.statusField ?? "status"] ?? "info"),
     category: definition.route,
     actor: "local user",

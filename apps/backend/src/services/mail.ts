@@ -7,7 +7,7 @@ export function isSmtpConfigured() {
 
 export async function sendReminderEmail(to: string, subject: string, text: string) {
   if (!isSmtpConfigured()) {
-    return { sent: false, skipped: true, reason: "SMTP is not configured." };
+    return { sent: false, skipped: true, reason: "SMTP is not configured" };
   }
 
   const transporter = nodemailer.createTransport({

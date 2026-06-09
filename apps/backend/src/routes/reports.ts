@@ -171,7 +171,7 @@ function rowsForReport(type: string, query: Record<string, unknown>) {
   }
   const definition = reportModules[type];
   if (!definition) {
-    throw new HttpError(404, "Unknown report type.");
+    throw new HttpError(404, "Unknown report type");
   }
   return moduleReport(definition, query);
 }
@@ -191,7 +191,7 @@ function sendPdf(res: import("express").Response, rows: ReportRow[], type: strin
   doc.fontSize(18).text(`${type.replaceAll("-", " ")} report`, { underline: true });
   doc.moveDown();
   if (rows.length === 0) {
-    doc.fontSize(10).text("No records match the selected filters.");
+    doc.fontSize(10).text("No records match the selected filters");
     doc.end();
     return;
   }

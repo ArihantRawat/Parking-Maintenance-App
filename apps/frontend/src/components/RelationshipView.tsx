@@ -92,7 +92,7 @@ export function RelationshipView({ structureId }: RelationshipViewProps) {
       <div className="section-header">
         <div>
           <h2>Structure Map</h2>
-          <p>The structure and everything linked to it, grouped so it stays readable.</p>
+          <p>The structure and everything linked to it, grouped so it stays readable</p>
         </div>
         <div className="tree-toolbar">
           <button className="icon-button" type="button" onClick={() => setZoom((current) => Math.max(0.6, Number((current - 0.1).toFixed(1))))} aria-label="Zoom out" title="Zoom out">
@@ -126,7 +126,7 @@ export function RelationshipView({ structureId }: RelationshipViewProps) {
         <button className="text-button" type="button" onClick={() => setAllGroups(true)}>
           Collapse all
         </button>
-        <span className="map-help">Hold Ctrl and scroll to zoom.</span>
+        <span className="map-help">Hold Ctrl and scroll to zoom</span>
       </div>
 
       <div className="tree-type-filter" aria-label="Filter by record types">
@@ -164,7 +164,7 @@ export function RelationshipView({ structureId }: RelationshipViewProps) {
             ) : null}
 
             <div className="tree-branches">
-              {groupedNodes.length === 0 ? <div className="tree-empty-row">No linked records match the current filters.</div> : null}
+              {groupedNodes.length === 0 ? <div className="tree-empty-row">No linked records match the current filters</div> : null}
               {groupedNodes.map((group) => {
                 const isCollapsed = collapsedGroups.has(group.group);
                 return (
@@ -201,7 +201,7 @@ export function RelationshipView({ structureId }: RelationshipViewProps) {
                             );
                           })
                         ) : (
-                          <div className="tree-empty-row">No records in this group.</div>
+                          <div className="tree-empty-row">No records in this group</div>
                         )}
                       </div>
                     ) : null}
@@ -229,7 +229,7 @@ export function RelationshipView({ structureId }: RelationshipViewProps) {
           ) : (
             <div className="relationship-detail-empty">
               <Layers size={22} />
-              <p>Select any card to see its full details here.</p>
+              <p>Select any card to see its full details here</p>
             </div>
           )}
         </aside>

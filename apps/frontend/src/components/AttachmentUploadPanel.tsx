@@ -15,7 +15,7 @@ export function AttachmentUploadPanel({ structureId, onUploaded }: { structureId
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (files.length === 0) {
-      setError("Choose at least one file first.");
+      setError("Choose at least one file first");
       return;
     }
     setSaving(true);
@@ -36,7 +36,7 @@ export function AttachmentUploadPanel({ structureId, onUploaded }: { structureId
       setNotes("");
       onUploaded();
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Upload failed.");
+      setError(err instanceof Error ? err.message : "Upload failed");
     } finally {
       setSaving(false);
     }
@@ -47,7 +47,7 @@ export function AttachmentUploadPanel({ structureId, onUploaded }: { structureId
       <div className="section-header">
         <div>
           <h2>Upload Attachments</h2>
-          <p>Upload files and link them to this structure.</p>
+          <p>Upload files and link them to this structure</p>
         </div>
       </div>
       <form className="upload-form" onSubmit={submit}>

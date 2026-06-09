@@ -7,7 +7,7 @@ export function SchedulerPage() {
       <section className="dashboard-heading">
         <div>
           <h1>Scheduler</h1>
-          <p>Create, filter, send, and track scheduled email reminders across all structures.</p>
+          <p>Create, filter, send, and track scheduled email reminders across all structures</p>
         </div>
       </section>
       <AdvancedTable definition={modulesByKey.reminders} title="Scheduler" />

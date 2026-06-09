@@ -36,7 +36,7 @@ export function createAttachmentRouter() {
     asyncHandler((req, res) => {
       const files = req.files as Express.Multer.File[] | undefined;
       if (!files?.length) {
-        throw new HttpError(400, "At least one file field named 'files' is required.");
+        throw new HttpError(400, "At least one file field named 'files' is required");
       }
       const structureId = req.body.structure_id ? Number(req.body.structure_id) : null;
 

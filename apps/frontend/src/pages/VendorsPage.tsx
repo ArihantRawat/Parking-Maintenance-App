@@ -7,7 +7,7 @@ export function VendorsPage() {
       <section className="dashboard-heading">
         <div>
           <h1>Vendors</h1>
-          <p>Local vendor directory for purchases, maintenance, cleaning, signs, and equipment.</p>
+          <p>Local vendor directory for purchases, maintenance, cleaning, signs, and equipment</p>
         </div>
       </section>
       <AdvancedTable definition={modulesByKey.vendors} />

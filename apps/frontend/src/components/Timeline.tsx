@@ -203,7 +203,7 @@ export function Timeline({ structureId }: TimelineProps) {
       <div className="section-header">
         <div>
           <h2>Activity Timeline</h2>
-          <p>{structureId ? "See what happened in this structure, filtered by activity type and status." : "Review activity across structures, filtered by structure, activity type, and status."}</p>
+          <p>{structureId ? "See what happened in this structure, filtered by activity type and status" : "Review activity across structures, filtered by structure, activity type, and status"}</p>
         </div>
       </div>
       <div className="inline-filter-row">
@@ -360,7 +360,7 @@ export function Timeline({ structureId }: TimelineProps) {
                   </div>
                   <div className="calendar-period-events">
                     {column.events.map(renderCalendarEvent)}
-                    {column.events.length === 0 ? <p>No activity logged.</p> : null}
+                    {column.events.length === 0 ? <p>No activity logged</p> : null}
                   </div>
                 </section>
               ))}
@@ -379,7 +379,7 @@ export function Timeline({ structureId }: TimelineProps) {
                     </div>
                     <div className="calendar-period-events">
                       {monthEvents.slice(0, 8).map(renderCalendarEvent)}
-                      {monthEvents.length === 0 ? <p>No activity logged.</p> : null}
+                      {monthEvents.length === 0 ? <p>No activity logged</p> : null}
                       {monthEvents.length > 8 ? <small className="calendar-more">+{monthEvents.length - 8} more records</small> : null}
                     </div>
                   </section>

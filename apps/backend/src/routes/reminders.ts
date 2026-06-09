@@ -38,7 +38,7 @@ function generateForRows(entityType: string, rows: Array<Record<string, unknown>
           entity_type: entityType,
           entity_id: row.id,
           title: `${titlePrefix}: ${row.title ?? row.name ?? row.issue_type ?? row.cleaning_type ?? row.stripping_type ?? row.sign_type ?? "record"}`,
-          message: `Generated reminder for ${titlePrefix.toLowerCase()}.`,
+          message: `Generated reminder for ${titlePrefix.toLowerCase()}`,
           event_type: "service due",
           reminder_type: entityType.replaceAll("-", " "),
           reminder_date: dateMinusDays(String(targetDate).slice(0, 10), offset),
@@ -47,7 +47,7 @@ function generateForRows(entityType: string, rows: Array<Record<string, unknown>
           offset_days: offset,
           status: "scheduled",
           source: `${entityType}.${dateField}`,
-          notes: `Generated ${offset} days before ${targetDate}.`
+          notes: `Generated ${offset} days before ${targetDate}`
         })
       );
     }

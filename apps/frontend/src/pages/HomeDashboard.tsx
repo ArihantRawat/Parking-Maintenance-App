@@ -16,7 +16,7 @@ export function HomeDashboard() {
       <section className="dashboard-heading">
         <div>
           <h1>Parking Maintenance</h1>
-          <p>Choose a module below to add, filter, sort, and update records in one place.</p>
+          <p>Choose a module below to add, filter, sort, and update records in one place</p>
         </div>
       </section>
 

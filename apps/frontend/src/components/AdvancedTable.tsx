@@ -95,7 +95,7 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
       setRows(result.data);
       setMeta(result.meta);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to load records.");
+      setError(err instanceof Error ? err.message : "Unable to load records");
     } finally {
       setLoading(false);
     }
@@ -264,7 +264,7 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
     const wasAdd = drawer.mode === "add";
     setDrawer({ open: false, mode: "view" });
     if (wasAdd) {
-      setToast({ id: Date.now(), message: `${definition.singular} created successfully.` });
+      setToast({ id: Date.now(), message: `${definition.singular} created successfully` });
     }
   }
 
@@ -290,7 +290,7 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
       setActionMenu(null);
       await loadRows();
     } catch (err) {
-      window.alert(err instanceof Error ? err.message : `Unable to delete ${definition.singular}.`);
+      window.alert(err instanceof Error ? err.message : `Unable to delete ${definition.singular}`);
     }
   }
 
@@ -319,10 +319,10 @@ export function AdvancedTable({ definition, title, structureId, compact }: Advan
     try {
       const result = await sendReminderEmail(Number(row.id), email);
       const payload = result.data as ApiRecord & { sent?: boolean; emailConfigured?: boolean; message?: string };
-      window.alert(payload.sent ? "Reminder email sent and marked complete." : `Reminder email failed: ${String(payload.message ?? "No email was sent.")}`);
+      window.alert(payload.sent ? "Reminder email sent and marked complete" : `Reminder email failed: ${String(payload.message ?? "No email was sent")}`);
       loadRows();
     } catch (err) {
-      window.alert(err instanceof Error ? err.message : "Unable to send the reminder email.");
+      window.alert(err instanceof Error ? err.message : "Unable to send the reminder email");
     }
   }
 

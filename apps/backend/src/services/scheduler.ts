@@ -84,18 +84,18 @@ export async function sendScheduledReminder(reminder: ReminderRow, fallbackEmail
   if (!to) {
     const failed = updateReminderSystemFields(Number(reminder.id), {
       status: "failed",
-      notes: `${reminder.notes ?? ""}\nEmail failed at ${nowIso()}: no recipient email was configured.`
+      notes: `${reminder.notes ?? ""}\nEmail failed at ${nowIso()}: no recipient email was configured`
     });
-    return { sent: false, emailConfigured: isSmtpConfigured(), reminder: failed, message: "No recipient email configured." };
+    return { sent: false, emailConfigured: isSmtpConfigured(), reminder: failed, message: "No recipient email configured" };
   }
 
   if (!isSmtpConfigured()) {
     const failed = updateReminderSystemFields(Number(reminder.id), {
       status: "failed",
       email_to: to,
-      notes: `${reminder.notes ?? ""}\nEmail failed at ${nowIso()}: SMTP is not configured.`
+      notes: `${reminder.notes ?? ""}\nEmail failed at ${nowIso()}: SMTP is not configured`
     });
-    return { sent: false, emailConfigured: false, reminder: failed, message: "SMTP is not configured; reminder remains local-only." };
+    return { sent: false, emailConfigured: false, reminder: failed, message: "SMTP is not configured; reminder remains local-only" };
   }
 
   const structure = reminder.structure_id ? (db.prepare("SELECT name FROM structures WHERE id = ?").get(reminder.structure_id) as { name?: string } | undefined) : undefined;
@@ -104,7 +104,7 @@ export async function sendScheduledReminder(reminder: ReminderRow, fallbackEmail
     const updated = updateReminderSystemFields(Number(reminder.id), {
       status: "completed",
       email_to: to,
-      notes: `${reminder.notes ?? ""}\nEmail sent successfully at ${nowIso()}.`
+      notes: `${reminder.notes ?? ""}\nEmail sent successfully at ${nowIso()}`
     });
     return { sent: true, emailConfigured: true, reminder: updated };
   } catch (err) {
@@ -113,7 +113,7 @@ export async function sendScheduledReminder(reminder: ReminderRow, fallbackEmail
       email_to: to,
       notes: `${reminder.notes ?? ""}\nEmail failed at ${nowIso()}: ${err instanceof Error ? err.message : "Unknown email error"}`
     });
-    return { sent: false, emailConfigured: true, reminder: failed, message: err instanceof Error ? err.message : "Unable to send reminder email." };
+    return { sent: false, emailConfigured: true, reminder: failed, message: err instanceof Error ? err.message : "Unable to send reminder email" };
   }
 }
 

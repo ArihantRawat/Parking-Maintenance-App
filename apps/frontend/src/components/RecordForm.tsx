@@ -132,7 +132,7 @@ export function RecordForm({ definition, initial, forcedStructureId, onSubmit, o
       }
       onSaved?.();
     } catch (err) {
-      const message = err instanceof Error ? err.message : "Unable to save record.";
+      const message = err instanceof Error ? err.message : "Unable to save record";
       setError(message);
       window.alert(message);
     } finally {
@@ -178,7 +178,7 @@ export function RecordForm({ definition, initial, forcedStructureId, onSubmit, o
         }));
         setValue(field.key, String(result.data.id ?? ""));
       } catch (err) {
-        setError(err instanceof Error ? err.message : "Unable to create vendor.");
+        setError(err instanceof Error ? err.message : "Unable to create vendor");
       }
       return;
     }

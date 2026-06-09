@@ -55,7 +55,7 @@ function normalizeValue(field: FieldDefinition, value: unknown) {
     }
     const numberValue = Number(value);
     if (Number.isNaN(numberValue)) {
-      throw new HttpError(400, `${field.label} must be a number.`);
+      throw new HttpError(400, `${field.label} must be a number`);
     }
     return numberValue;
   }
@@ -71,19 +71,19 @@ function sanitizePayload(definition: ModuleDefinition, body: Record<string, unkn
     if (Object.hasOwn(body, field.key)) {
       output[field.key] = normalizeValue(field, body[field.key]);
     } else if (!partial && field.required) {
-      throw new HttpError(400, `${field.label} is required.`);
+      throw new HttpError(400, `${field.label} is required`);
     }
   }
 
   if (!partial) {
     for (const field of writableFields(definition)) {
       if (field.required && (output[field.key] === undefined || output[field.key] === null || output[field.key] === "")) {
-        throw new HttpError(400, `${field.label} is required.`);
+        throw new HttpError(400, `${field.label} is required`);
       }
     }
     const structureField = writableFields(definition).find((field) => field.key === "structure_id");
     if (definition.supportsStructure && structureField?.required && !output.structure_id) {
-      throw new HttpError(400, "Structure is required.");
+      throw new HttpError(400, "Structure is required");
     }
   }
 
@@ -97,7 +97,7 @@ function parseFilters(value: unknown): Record<string, FilterValue | string | num
   try {
     return JSON.parse(value) as Record<string, FilterValue | string | number | null>;
   } catch {
-    throw new HttpError(400, "filters must be valid JSON.");
+    throw new HttpError(400, "filters must be valid JSON");
   }
 }
 
@@ -198,7 +198,7 @@ export function listRecords(definition: ModuleDefinition, options: ListOptions) 
 export function getRecord(definition: ModuleDefinition, id: number) {
   const row = db.prepare(`SELECT * FROM ${definition.tableName} WHERE id = ?`).get(id);
   if (!row) {
-    throw new HttpError(404, `${definition.singular} not found.`);
+    throw new HttpError(404, `${definition.singular} not found`);
   }
   return row as Record<string, unknown>;
 }
@@ -207,7 +207,7 @@ export function createRecord(definition: ModuleDefinition, body: Record<string, 
   const payload = sanitizePayload(definition, body);
   const entries = Object.entries(payload).filter(([, value]) => value !== undefined);
   if (entries.length === 0) {
-    throw new HttpError(400, "No writable fields were provided.");
+    throw new HttpError(400, "No writable fields were provided");
   }
 
   const columns = entries.map(([key]) => key);
@@ -229,7 +229,7 @@ export function updateRecord(definition: ModuleDefinition, id: number, body: Rec
   const payload = sanitizePayload(definition, body, true);
   const entries = Object.entries(payload).filter(([, value]) => value !== undefined);
   if (entries.length === 0) {
-    throw new HttpError(400, "No writable fields were provided.");
+    throw new HttpError(400, "No writable fields were provided");
   }
 
   entries.push(["updated_at", nowIso()]);

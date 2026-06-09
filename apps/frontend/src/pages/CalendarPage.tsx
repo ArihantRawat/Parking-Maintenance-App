@@ -165,7 +165,7 @@ export function CalendarPage() {
         <div>
           <p>Operations Calendar</p>
           <h1>Calendar View</h1>
-          <span>See cleaning and stripping work across every structure, or narrow it to the places and work types you care about.</span>
+          <span>See cleaning and stripping work across every structure, or narrow it to the places and work types you care about</span>
         </div>
         <div className="calendar-hero-stat">
           <strong>{filteredEvents.length}</strong>
@@ -308,7 +308,7 @@ export function CalendarPage() {
                       {event.status ? <StatusBadge value={event.status} /> : null}
                     </button>
                   ))}
-                  {column.events.length === 0 ? <p>No work logged.</p> : null}
+                  {column.events.length === 0 ? <p>No work logged</p> : null}
                 </div>
               </section>
             ))}
@@ -337,7 +337,7 @@ export function CalendarPage() {
                         {event.status ? <StatusBadge value={event.status} /> : null}
                       </button>
                     ))}
-                    {monthEvents.length === 0 ? <p>No work logged.</p> : null}
+                    {monthEvents.length === 0 ? <p>No work logged</p> : null}
                     {monthEvents.length > 8 ? <small className="calendar-more">+{monthEvents.length - 8} more records</small> : null}
                   </div>
                 </section>

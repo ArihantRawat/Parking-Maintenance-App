@@ -60,7 +60,7 @@ export function SearchPage() {
             Unified lookup
           </span>
           <h1>Search</h1>
-          <p>Search across structures, assets, vendors, statuses, dates, and notes from one page.</p>
+          <p>Search across structures, assets, vendors, statuses, dates, and notes from one page</p>
         </div>
         <div className="search-hero-stats">
           <div>
@@ -91,8 +91,8 @@ export function SearchPage() {
           </div>
         </form>
         <div className="search-helper-row">
-          <span>Try names, vendors, sign messages, statuses, or notes.</span>
-          {q ? <strong>{loading ? "Searching..." : `${totalResults} results for "${q}"`}</strong> : <strong>Start with a keyword to search across the app.</strong>}
+          <span>Try names, vendors, sign messages, statuses, or notes</span>
+          {q ? <strong>{loading ? "Searching..." : `${totalResults} results for "${q}"`}</strong> : <strong>Start with a keyword to search across the app</strong>}
         </div>
       </section>
       <div className="search-results">

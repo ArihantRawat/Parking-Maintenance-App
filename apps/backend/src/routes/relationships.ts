@@ -63,7 +63,7 @@ export function createRelationshipRouter() {
       const structureId = Number(req.params.structureId);
       const structure = db.prepare("SELECT * FROM structures WHERE id = ?").get(structureId) as Record<string, unknown> | undefined;
       if (!structure) {
-        throw new HttpError(404, "Structure not found.");
+        throw new HttpError(404, "Structure not found");
       }
 
       const filterTypes = String(req.query.types ?? "")

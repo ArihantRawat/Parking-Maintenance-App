@@ -6,7 +6,7 @@ export function ActivityTimelinePage() {
       <section className="dashboard-heading">
         <div>
           <h1>Activity Timeline</h1>
-          <p>Review activity across all structures in timeline or calendar view.</p>
+          <p>Review activity across all structures in timeline or calendar view</p>
         </div>
       </section>
 

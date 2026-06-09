@@ -42,7 +42,7 @@ export function ReportPanel({ structureId }: { structureId?: number }) {
       <div className="section-header">
         <div>
           <h2>Reports</h2>
-          <p>Download filtered Excel or PDF reports from the current results.</p>
+          <p>Download filtered Excel or PDF reports from the current results</p>
         </div>
         <div className="toolbar-actions">
           <a className="icon-text-button" href={reportDownloadUrl(reportType, "xlsx", params)}>
