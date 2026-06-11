@@ -82,7 +82,7 @@ function structureSummary(query: Record<string, unknown>) {
         (SELECT COUNT(*) FROM signs sg WHERE sg.structure_id = s.id AND sg.archived_at IS NULL) AS signs,
         (SELECT COUNT(*) FROM equipment e WHERE e.structure_id = s.id AND e.archived_at IS NULL) AS equipment,
         (SELECT COUNT(*) FROM maintenance_tickets m WHERE m.structure_id = s.id AND m.status IN ('open','in progress') AND m.archived_at IS NULL) AS open_issues,
-        (SELECT COUNT(*) FROM reminders r WHERE r.structure_id = s.id AND r.status IN ('pending','overdue') AND r.archived_at IS NULL) AS active_reminders,
+        (SELECT COUNT(*) FROM reminders r WHERE r.structure_id = s.id AND r.status IN ('scheduled','sending','failed') AND r.archived_at IS NULL) AS active_reminders,
         (SELECT COALESCE(SUM(cost),0) FROM purchases pu WHERE pu.structure_id = s.id AND pu.archived_at IS NULL) AS purchase_costs,
         (SELECT COALESCE(SUM(cost),0) FROM maintenance_tickets mt WHERE mt.structure_id = s.id AND mt.archived_at IS NULL) AS maintenance_costs
        FROM structures s
@@ -107,7 +107,7 @@ function overdueTasks(query: Record<string, unknown>) {
        UNION ALL
        SELECT 'reminder' AS module, id, structure_id, title, reminder_date AS task_date, status, NULL AS priority, 0 AS cost
        FROM reminders
-       WHERE archived_at IS NULL AND status IN ('pending','overdue') AND reminder_date < ? ${structureClause}
+       WHERE archived_at IS NULL AND status IN ('scheduled','sending','failed') AND reminder_date < ? ${structureClause}
        UNION ALL
        SELECT 'cleaning' AS module, id, structure_id, cleaning_type AS title, scheduled_date AS task_date, status, NULL AS priority, cost
        FROM cleaning_logs
