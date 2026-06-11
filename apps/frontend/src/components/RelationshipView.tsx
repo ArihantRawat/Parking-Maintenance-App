@@ -22,11 +22,17 @@ export function RelationshipView({ structureId }: RelationshipViewProps) {
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set());
 
   useEffect(() => {
-    fetchRelationshipGraph(structureId, { status, from, to }).then((result) => {
-      setNodes(result.data.nodes as GraphNode[]);
-      setEdges(result.data.edges as GraphEdge[]);
-      setSelected(null);
-    });
+    fetchRelationshipGraph(structureId, { status, from, to })
+      .then((result) => {
+        setNodes(result.data.nodes as GraphNode[]);
+        setEdges(result.data.edges as GraphEdge[]);
+        setSelected(null);
+      })
+      .catch(() => {
+        setNodes([]);
+        setEdges([]);
+        setSelected(null);
+      });
   }, [from, status, structureId, to]);
 
   const rootNode = useMemo(() => nodes.find((node) => node.group === "structures") ?? null, [nodes]);
