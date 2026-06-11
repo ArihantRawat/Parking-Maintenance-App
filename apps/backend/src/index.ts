@@ -15,10 +15,12 @@ import { createAttachmentRouter } from "./routes/attachments.js";
 import { createReminderActionsRouter } from "./routes/reminders.js";
 import { createInspectionActionsRouter } from "./routes/inspections.js";
 import { startScheduler } from "./services/scheduler.js";
+import { startDatabaseBackups } from "./services/backups.js";
 
 migrate();
 seedIfEmpty();
 startScheduler();
+startDatabaseBackups();
 
 const app = express();
 
