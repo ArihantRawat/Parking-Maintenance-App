@@ -550,7 +550,6 @@ export function seedDatabase(options: { reset?: boolean } = {}) {
         purchase_date: "2026-01-20",
         delivery_date: "2026-01-28",
         installation_date: "2026-02-03",
-        quantity: 1,
         status: "installed",
         invoice_number: "GSS-260120",
         notes: "Capital replacement."
@@ -564,7 +563,6 @@ export function seedDatabase(options: { reset?: boolean } = {}) {
         description: "Replacement EV signs",
         cost: 440,
         purchase_date: "2026-05-20",
-        quantity: 2,
         status: "ordered",
         invoice_number: "MSW-5518",
         notes: "Ordered with UV-resistant coating."
@@ -579,7 +577,6 @@ export function seedDatabase(options: { reset?: boolean } = {}) {
         cost: 780,
         purchase_date: "2026-05-01",
         delivery_date: "2026-05-09",
-        quantity: 1,
         status: "paid",
         invoice_number: "GSS-260509",
         notes: "Completed and paid."
@@ -594,7 +591,7 @@ export function seedDatabase(options: { reset?: boolean } = {}) {
         title: "Gate sensor alignment due",
         reminder_date: "2026-06-09",
         offset_days: 1,
-        status: "pending",
+        status: "scheduled",
         source: "maintenance due date",
         notes: "Generated from high-priority ticket."
       }),
@@ -605,7 +602,7 @@ export function seedDatabase(options: { reset?: boolean } = {}) {
         title: "EV charger warranty follow-up",
         reminder_date: "2026-05-28",
         offset_days: 7,
-        status: "overdue",
+        status: "scheduled",
         source: "warranty expiry",
         notes: "Review warranty coverage for port B."
       }),
@@ -616,7 +613,7 @@ export function seedDatabase(options: { reset?: boolean } = {}) {
         title: "Monthly sump pump wet test",
         reminder_date: "2026-06-15",
         offset_days: 0,
-        status: "pending",
+        status: "scheduled",
         source: "manual",
         notes: "Storm season readiness."
       })
