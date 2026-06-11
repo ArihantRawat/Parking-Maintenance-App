@@ -31,6 +31,7 @@ export function SearchPage() {
     setLoading(true);
     globalSearch(q)
       .then((result) => setGroups(result.data as SearchGroup[]))
+      .catch(() => setGroups([]))
       .finally(() => setLoading(false));
   }, [q]);
 
