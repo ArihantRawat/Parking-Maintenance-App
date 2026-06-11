@@ -48,11 +48,14 @@ export function Timeline({ structureId }: TimelineProps) {
     setLoading(true);
     fetchTimeline({ structure_id: structureId, status, pageSize: 500 })
       .then((result) => setRows(result.data))
+      .catch(() => setRows([]))
       .finally(() => setLoading(false));
   }, [status, structureId]);
 
   useEffect(() => {
-    fetchTimeline({ structure_id: structureId, pageSize: 500 }).then((result) => setOptionRows(result.data));
+    fetchTimeline({ structure_id: structureId, pageSize: 500 })
+      .then((result) => setOptionRows(result.data))
+      .catch(() => setOptionRows([]));
   }, [structureId]);
 
   useEffect(() => {
