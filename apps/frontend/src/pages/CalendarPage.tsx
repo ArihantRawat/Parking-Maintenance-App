@@ -58,6 +58,12 @@ export function CalendarPage() {
         setStrippingRows(strippingResult.data);
         setSelectedStructures(new Set(structureResult.data.map((structure) => Number(structure.id))));
       })
+      .catch(() => {
+        setStructures([]);
+        setCleaningRows([]);
+        setStrippingRows([]);
+        setSelectedStructures(new Set());
+      })
       .finally(() => setLoading(false));
   }, []);
 
