@@ -28,10 +28,13 @@ export function StructureDashboard() {
   const [structure, setStructure] = useState<ApiRecord | null>(null);
 
   useEffect(() => {
-    getModuleRecord(modulesByKey.structures, structureId).then((result) => setStructure(result.data));
+    getModuleRecord(modulesByKey.structures, structureId)
+      .then((result) => setStructure(result.data))
+      .catch(() => setStructure(null));
   }, [structureId]);
 
   const currentTab = useMemo(() => structureDashboardTabs.find((tab) => tab.key === activeTab) ?? structureDashboardTabs[0], [activeTab]);
+  const structureSubtitle = [structure?.type ? humanize(String(structure.type)) : "", String(structure?.location ?? "")].filter(Boolean).join(" / ");
 
   function setTab(tab: string) {
     navigate(`/structures/${structureId}/${tab === "overview" ? "" : tab}`.replace(/\/$/, ""));
@@ -81,9 +84,7 @@ export function StructureDashboard() {
             <span>{structure ? recordTitle(structure) : "Structure"}</span>
           </div>
           <h1>{structure ? recordTitle(structure) : "Structure"}</h1>
-          <p>
-            {[structure?.type ? humanize(String(structure.type)) : "", String(structure?.location ?? "")].filter(Boolean).join(" · ")}
-          </p>
+          <p>{structureSubtitle}</p>
         </div>
         {structure ? <StatusBadge value={structure.status} /> : null}
       </section>
