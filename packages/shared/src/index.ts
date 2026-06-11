@@ -203,7 +203,7 @@ export const moduleDefinitions: ModuleDefinition[] = [
     supportsStructure: true,
     statusField: "status",
     defaultSort: "id",
-    searchFields: ["name", "sign_type", "message", "condition", "status", "level", "supplier", "notes"],
+    searchFields: ["name", "sign_type", "message", "condition", "status", "level", "notes"],
     fields: [
       structureField,
       { key: "name", label: "Name", type: "text", table: true, form: true, editable: true },
@@ -438,7 +438,7 @@ export const moduleDefinitions: ModuleDefinition[] = [
     defaultSort: "purchase_date",
     searchFields: ["id", "entity_type", "item_type", "description", "status", "invoice_number", "notes"],
     fields: [
-      structureField,
+      optionalStructureField,
       { key: "entity_type", label: "Related Type", type: "enum", table: true, form: true, editable: true, enumValues: ["materials", "services", "supplies", "other"], filter: "enum" },
       { key: "entity_id", label: "Related ID", type: "number", table: false, form: false, editable: false },
       { key: "vendor_id", label: "Vendor Name", type: "number", table: true, form: true, editable: true, filter: "enum", relation: "vendors", relationLabel: "name" },
@@ -496,7 +496,7 @@ export const moduleDefinitions: ModuleDefinition[] = [
     defaultSort: "created_at",
     searchFields: ["id", "entity_type", "file_name", "file_path", "mime_type", "attachment_type", "before_after", "status", "notes"],
     fields: [
-      structureField,
+      optionalStructureField,
       { key: "entity_type", label: "Related Module", type: "text", table: true, form: true, editable: true, filter: "text" },
       { key: "entity_id", label: "Related ID", type: "number", table: true, form: true, editable: true, filter: "number" },
       { key: "file_name", label: "File Name", type: "text", table: true, form: true, editable: true, required: true, filter: "text" },
