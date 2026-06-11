@@ -64,10 +64,15 @@ export function Timeline({ structureId }: TimelineProps) {
       setSelectedStructures(new Set());
       return;
     }
-    listModule(modulesByKey.structures, { pageSize: 100, sortBy: "name", sortDir: "asc" }).then((result) => {
-      setStructures(result.data);
-      setSelectedStructures(new Set(result.data.map((structure) => Number(structure.id))));
-    });
+    listModule(modulesByKey.structures, { pageSize: 100, sortBy: "name", sortDir: "asc" })
+      .then((result) => {
+        setStructures(result.data);
+        setSelectedStructures(new Set(result.data.map((structure) => Number(structure.id))));
+      })
+      .catch(() => {
+        setStructures([]);
+        setSelectedStructures(new Set());
+      });
   }, [isGlobalTimeline]);
 
   const sortedRows = useMemo(
