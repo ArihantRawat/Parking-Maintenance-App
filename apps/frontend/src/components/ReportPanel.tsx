@@ -46,7 +46,9 @@ export function ReportPanel({ structureId }: { structureId?: number }) {
   const params = { structure_id: structureId, status, type, category, from, to };
 
   useEffect(() => {
-    fetchReport(reportType, params).then((result) => setRows(result.data));
+    fetchReport(reportType, params)
+      .then((result) => setRows(result.data))
+      .catch(() => setRows([]));
   }, [category, from, reportType, status, structureId, to, type]);
 
   const columns = rows[0] ? Object.keys(rows[0]).filter((column) => !isIdColumn(column)).slice(0, 8) : [];
