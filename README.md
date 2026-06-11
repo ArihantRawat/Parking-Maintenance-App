@@ -128,6 +128,9 @@ Copy `apps/backend/.env.example` to `apps/backend/.env`. All variables are optio
 ```bash
 PORT=4000
 SQLITE_PATH=                          # Defaults to apps/backend/data/parking-maintenance.sqlite
+BACKUP_DIR=                           # Defaults to apps/backend/data/backups
+BACKUP_INTERVAL_MINUTES=120           # Automatic SQLite backup frequency; 0 disables it
+BACKUP_RETENTION=72                   # Number of backup files to keep
 
 # Optional — required only for sending scheduler emails
 SMTP_HOST=
@@ -141,11 +144,14 @@ Without SMTP, the app works normally. Reminders are created and tracked locally;
 
 The backend polls every 5 seconds and sends due reminders automatically when SMTP is configured.
 
+The backend also creates a SQLite backup on startup and then every 2 hours by default. Backups use SQLite's backup API, so they are safe with WAL mode while the app is running. To restore, stop the backend, copy the selected backup over the active `SQLITE_PATH`, and restart the app.
+
 ## Local Storage
 
 | Path | Contents |
 | --- | --- |
 | `apps/backend/data/parking-maintenance.sqlite` | SQLite database |
+| `apps/backend/data/backups/` | Automatic SQLite backups |
 | `apps/backend/storage/attachments/` | Uploaded files |
 | `/files/...` | Static file serving URL for attachments |
 

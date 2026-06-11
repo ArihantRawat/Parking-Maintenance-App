@@ -6,6 +6,7 @@ dist/
 
 apps/backend/data/*.sqlite
 apps/backend/data/*.sqlite-*
+apps/backend/data/backups/
 apps/backend/storage/attachments/
 apps/frontend/dist/
 .codex-runtime/
