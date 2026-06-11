@@ -956,7 +956,7 @@ th.sticky-col {
   border: 1px solid var(--border);
   border-radius: 8px;
   background: #fff;
-  color: var(--ink);
+  color: var(--text);
   cursor: pointer;
   font-weight: 700;
 }
@@ -976,7 +976,7 @@ th.sticky-col {
   padding: 6px 8px;
   border-radius: 999px;
   background: #edf4f3;
-  color: var(--ink);
+  color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;

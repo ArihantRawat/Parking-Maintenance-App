@@ -461,7 +461,7 @@ export const moduleDefinitions: ModuleDefinition[] = [
     label: "Scheduler",
     singular: "Scheduled Reminder",
     description: "Scheduled email reminders for maintenance work and follow-ups",
-    supportsStructure: false,
+    supportsStructure: true,
     statusField: "status",
     defaultSort: "reminder_date",
     searchFields: ["title", "message", "event_type", "reminder_type", "status", "frequency", "email_to", "notes"],
