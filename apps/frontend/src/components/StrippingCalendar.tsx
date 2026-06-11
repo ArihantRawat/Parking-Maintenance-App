@@ -14,7 +14,9 @@ export function StrippingCalendar({ structureId }: { structureId?: number }) {
       sortBy: "scheduled_date",
       sortDir: "asc",
       filters: structureId ? { structure_id: { value: structureId } } : {}
-    }).then((result) => setRows(result.data));
+    })
+      .then((result) => setRows(result.data))
+      .catch(() => setRows([]));
   }, [structureId]);
 
   const groups = useMemo(() => {
