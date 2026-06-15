@@ -984,34 +984,45 @@ th.sticky-col {
 }
 
 .reminder-option-row {
-  align-items: center;
-  grid-template-columns: minmax(0, 1fr) minmax(160px, 220px);
+  align-items: start;
+  grid-template-columns: minmax(0, 1fr);
   padding: 12px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: #f8fbfa;
+  overflow: hidden;
 }
 
 .reminder-option-row label {
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
 }
 
 .reminder-option-row input[type="checkbox"] {
+  flex: 0 0 auto;
   width: 16px;
   min-height: 16px;
 }
 
 .reminder-date-time-fields {
   display: grid;
-  grid-template-columns: repeat(2, minmax(140px, 1fr));
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 
 .reminder-date-time-fields label {
   display: grid;
   gap: 4px;
+  min-width: 0;
+}
+
+.reminder-date-time-fields input {
+  width: 100%;
+  min-width: 0;
 }
 
 .record-form .primary-button,
@@ -2304,6 +2315,10 @@ th.sticky-col {
   .record-form,
   .upload-form,
   .report-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .reminder-date-time-fields {
     grid-template-columns: 1fr;
   }
 
