@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useSearchParams } from "react-router-dom";
 import { homeModuleKeys, modulesByKey, type ModuleKey } from "@parking/shared";
 import { AdvancedTable } from "../components/AdvancedTable";
@@ -23,18 +23,10 @@ function homeKeyFromParam(value: string | null) {
 
 export function HomeDashboard() {
   const [params, setParams] = useSearchParams();
-  const requestedTab = homeKeyFromParam(params.get("tab"));
-  const [activeTab, setActiveTab] = useState<ModuleKey>(requestedTab ?? "structures");
+  const activeTab = homeKeyFromParam(params.get("tab")) ?? "structures";
   const activeDefinition = useMemo(() => modulesByKey[activeTab], [activeTab]);
 
-  useEffect(() => {
-    if (requestedTab && requestedTab !== activeTab) {
-      setActiveTab(requestedTab);
-    }
-  }, [activeTab, requestedTab]);
-
   function selectTab(key: ModuleKey) {
-    setActiveTab(key);
     setParams(key === "structures" ? {} : { tab: modulesByKey[key].route });
   }
 
