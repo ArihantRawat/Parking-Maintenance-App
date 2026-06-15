@@ -1,7 +1,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { ArrowRight, Search, Sparkles } from "lucide-react";
-import type { ApiRecord } from "@parking/shared";
+import { homeModuleKeys, modulesByKey, type ApiRecord } from "@parking/shared";
 import { globalSearch } from "../api/client";
 import { EmptyState } from "../components/EmptyState";
 import { StatusBadge } from "../components/StatusBadge";
@@ -13,6 +13,8 @@ type SearchGroup = {
   label: string;
   records: ApiRecord[];
 };
+
+const homeRoutes = new Set(homeModuleKeys.map((key) => modulesByKey[key].route));
 
 export function SearchPage() {
   const [params, setParams] = useSearchParams();
@@ -48,6 +50,9 @@ export function SearchPage() {
     }
     if (record.structure_id) {
       return `/structures/${record.structure_id}/${group.route}`;
+    }
+    if (homeRoutes.has(group.route)) {
+      return `/?tab=${group.route}`;
     }
     return "/";
   }
