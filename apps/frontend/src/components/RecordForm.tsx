@@ -19,10 +19,7 @@ type RelationOptions = Record<string, ApiRecord[]>;
 const cleaningReminderModules = new Set(["cleaningLogs", "elevatorCleaningLogs"]);
 
 function nextReminderDate(dateValue: unknown, frequencyValue: unknown) {
-  const source = String(dateValue ?? "");
-  if (!source) {
-    return "";
-  }
+  const source = String(dateValue || new Date().toISOString().slice(0, 10));
   const date = new Date(`${source.slice(0, 10)}T12:00:00`);
   if (Number.isNaN(date.getTime())) {
     return "";
@@ -57,12 +54,21 @@ export function RecordForm({ definition, initial, forcedStructureId, onSubmit, o
   const [files, setFiles] = useState<File[]>([]);
   const [mapFiles, setMapFiles] = useState<File[]>([]);
   const [scheduleNextReminder, setScheduleNextReminder] = useState(false);
+  const [reminderDate, setReminderDate] = useState(() => nextReminderDate(initial?.completed_date || initial?.scheduled_date, initial?.frequency));
+  const [reminderDateTouched, setReminderDateTouched] = useState(false);
   const [reminderTime, setReminderTime] = useState("09:00");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const structureValue = forcedStructureId ?? Number(values.structure_id || 0);
   const canScheduleCleaningReminder = cleaningReminderModules.has(definition.key) && Boolean(values.frequency);
   const canUploadMaps = definition.key === "structures";
+  const defaultReminderDate = nextReminderDate(values.completed_date || values.scheduled_date, values.frequency);
+
+  useEffect(() => {
+    if (canScheduleCleaningReminder && !reminderDateTouched) {
+      setReminderDate(defaultReminderDate);
+    }
+  }, [canScheduleCleaningReminder, defaultReminderDate, reminderDateTouched]);
 
   useEffect(() => {
     const relationFields = editableFields.filter((field) => field.relation);
@@ -169,7 +175,6 @@ export function RecordForm({ definition, initial, forcedStructureId, onSubmit, o
       setMapFiles([]);
 
       if (canScheduleCleaningReminder && scheduleNextReminder) {
-        const reminderDate = nextReminderDate(values.completed_date || values.scheduled_date, values.frequency);
         const entityId = Number(savedRecord?.id ?? initial?.id);
         if (reminderDate && entityId) {
           await createModuleRecord(modulesByKey.reminders, {
@@ -400,10 +405,40 @@ export function RecordForm({ definition, initial, forcedStructureId, onSubmit, o
       {canScheduleCleaningReminder ? (
         <div className="form-field form-field-wide reminder-option-row">
           <label>
-            <input type="checkbox" checked={scheduleNextReminder} onChange={(event) => setScheduleNextReminder(event.target.checked)} />
+            <input
+              type="checkbox"
+              checked={scheduleNextReminder}
+              onChange={(event) => {
+                setScheduleNextReminder(event.target.checked);
+                if (event.target.checked && !reminderDate) {
+                  setReminderDate(defaultReminderDate);
+                }
+                if (!event.target.checked) {
+                  setReminderDateTouched(false);
+                }
+              }}
+            />
             Schedule reminder for next {String(values.frequency).toLowerCase()} cleaning
           </label>
-          {scheduleNextReminder ? <TimePickerField value={reminderTime} onChange={setReminderTime} /> : null}
+          {scheduleNextReminder ? (
+            <div className="reminder-date-time-fields">
+              <label>
+                <span>Reminder date</span>
+                <input
+                  type="date"
+                  value={reminderDate}
+                  onChange={(event) => {
+                    setReminderDateTouched(true);
+                    setReminderDate(event.target.value);
+                  }}
+                />
+              </label>
+              <label>
+                <span>Reminder time</span>
+                <TimePickerField value={reminderTime} onChange={setReminderTime} />
+              </label>
+            </div>
+          ) : null}
         </div>
       ) : null}
       {error ? <div className="form-error">{error}</div> : null}

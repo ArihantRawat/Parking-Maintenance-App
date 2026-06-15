@@ -1003,6 +1003,17 @@ th.sticky-col {
   min-height: 16px;
 }
 
+.reminder-date-time-fields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(140px, 1fr));
+  gap: 10px;
+}
+
+.reminder-date-time-fields label {
+  display: grid;
+  gap: 4px;
+}
+
 .record-form .primary-button,
 .upload-form .primary-button {
   grid-column: 1 / -1;
