@@ -132,41 +132,30 @@ function overdueTasks(query: Record<string, unknown>) {
 }
 
 function costSummary(query: Record<string, unknown>) {
-  const structureWhere = query.structure_id ? "AND structure_id = ?" : "";
   const params = query.structure_id ? [Number(query.structure_id)] : [];
   return db
     .prepare(
-      `SELECT s.id AS structure_id, s.name AS structure_name, 'maintenance' AS module, COALESCE(SUM(m.cost),0) AS total_cost, COUNT(m.id) AS records
-       FROM structures s LEFT JOIN maintenance_tickets m ON m.structure_id = s.id AND m.archived_at IS NULL
-       WHERE 1=1 ${query.structure_id ? "AND s.id = ?" : ""}
-       GROUP BY s.id
-       UNION ALL
-       SELECT s.id, s.name, 'cleaning', COALESCE(SUM(c.cost),0), COUNT(c.id)
-       FROM structures s LEFT JOIN cleaning_logs c ON c.structure_id = s.id AND c.archived_at IS NULL
-       WHERE 1=1 ${query.structure_id ? "AND s.id = ?" : ""}
-       GROUP BY s.id
-       UNION ALL
-       SELECT s.id, s.name, 'stripping', COALESCE(SUM(st.cost),0), COUNT(st.id)
-       FROM structures s LEFT JOIN stripping_logs st ON st.structure_id = s.id AND st.archived_at IS NULL
-       WHERE 1=1 ${query.structure_id ? "AND s.id = ?" : ""}
-       GROUP BY s.id
-       UNION ALL
-       SELECT s.id, s.name, 'signs', COALESCE(SUM(si.cost),0), COUNT(si.id)
-       FROM structures s LEFT JOIN signs si ON si.structure_id = s.id AND si.archived_at IS NULL
-       WHERE 1=1 ${query.structure_id ? "AND s.id = ?" : ""}
-       GROUP BY s.id
-       UNION ALL
-       SELECT s.id, s.name, 'equipment', COALESCE(SUM(e.cost),0), COUNT(e.id)
-       FROM structures s LEFT JOIN equipment e ON e.structure_id = s.id AND e.archived_at IS NULL
-       WHERE 1=1 ${query.structure_id ? "AND s.id = ?" : ""}
-       GROUP BY s.id
-       UNION ALL
-       SELECT s.id, s.name, 'purchases', COALESCE(SUM(p.cost),0), COUNT(p.id)
-       FROM structures s LEFT JOIN purchases p ON p.structure_id = s.id AND p.archived_at IS NULL
-       WHERE 1=1 ${query.structure_id ? "AND s.id = ?" : ""}
-       GROUP BY s.id`
+      `WITH costs AS (
+        SELECT structure_id, 'maintenance' AS module, cost FROM maintenance_tickets WHERE archived_at IS NULL
+        UNION ALL SELECT structure_id, 'cleaning', cost FROM cleaning_logs WHERE archived_at IS NULL
+        UNION ALL SELECT structure_id, 'stripping', cost FROM stripping_logs WHERE archived_at IS NULL
+        UNION ALL SELECT structure_id, 'signs', cost FROM signs WHERE archived_at IS NULL
+        UNION ALL SELECT structure_id, 'equipment', cost FROM equipment WHERE archived_at IS NULL
+        UNION ALL SELECT structure_id, 'orders/purchases', cost FROM sign_orders WHERE archived_at IS NULL
+        UNION ALL SELECT structure_id, 'legacy purchases', cost FROM purchases WHERE archived_at IS NULL
+       )
+       SELECT costs.structure_id,
+        COALESCE(s.name, 'Independent') AS structure_name,
+        costs.module,
+        COALESCE(SUM(COALESCE(costs.cost, 0)), 0) AS total_cost,
+        COUNT(*) AS records
+       FROM costs
+       LEFT JOIN structures s ON s.id = costs.structure_id
+       WHERE ${query.structure_id ? "costs.structure_id = ?" : "1 = 1"}
+       GROUP BY costs.structure_id, costs.module
+       ORDER BY structure_name, costs.module`
     )
-    .all(...params, ...params, ...params, ...params, ...params, ...params) as ReportRow[];
+    .all(...params) as ReportRow[];
 }
 
 function rowsForReport(type: string, query: Record<string, unknown>) {
