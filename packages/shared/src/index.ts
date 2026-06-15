@@ -232,7 +232,7 @@ export const moduleDefinitions: ModuleDefinition[] = [
     route: "sign-orders",
     label: "Orders/Purchases",
     singular: "Order/Purchase",
-    description: "Order and purchase tracking for signs, equipment, services, and materials",
+    description: "Order and purchase tracking for signs, equipment, and services",
     supportsStructure: true,
     statusField: "status",
     defaultSort: "id",
