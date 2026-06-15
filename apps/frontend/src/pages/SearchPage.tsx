@@ -61,7 +61,7 @@ export function SearchPage() {
             Global Search
           </span>
           <h1>Search</h1>
-          <p>Find records across structures, parking spaces, signs, equipment, cleaning and stripping logs, purchases, reminders, and vendors</p>
+          <p>Find records across structures, parking spaces, signs, equipment, orders, cleaning, barricading, reminders, and vendors</p>
         </div>
         <div className="search-hero-stats">
           <div>

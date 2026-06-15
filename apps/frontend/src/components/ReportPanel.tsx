@@ -26,10 +26,12 @@ function formatReportCell(column: string, value: unknown) {
 const reportTypes = [
   { key: "maintenance", label: "Maintenance" },
   { key: "cleaning", label: "Cleaning" },
+  { key: "elevator-cleaning", label: "Elevator Cleaning" },
+  { key: "barricading", label: "Barricading" },
   { key: "stripping", label: "Stripping" },
   { key: "sign", label: "Signs" },
   { key: "equipment", label: "Equipment" },
-  { key: "purchase", label: "Purchases" },
+  { key: "purchase", label: "Legacy Purchases" },
   { key: "structure-summary", label: "Structure Summary" },
   { key: "overdue-task", label: "Overdue Tasks" },
   { key: "cost-summary", label: "Cost Summary" }

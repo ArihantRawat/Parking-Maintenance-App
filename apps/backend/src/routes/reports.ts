@@ -10,6 +10,8 @@ type ReportRow = Record<string, unknown>;
 const reportModules: Record<string, ModuleDefinition> = {
   maintenance: modulesByKey.maintenanceTickets,
   cleaning: modulesByKey.cleaningLogs,
+  "elevator-cleaning": modulesByKey.elevatorCleaningLogs,
+  barricading: modulesByKey.barricadingLogs,
   stripping: modulesByKey.strippingLogs,
   sign: modulesByKey.signs,
   equipment: modulesByKey.equipment,
@@ -39,14 +41,14 @@ function moduleReport(definition: ModuleDefinition, query: Record<string, unknow
     params.push(String(query.category));
   }
   if (query.from) {
-    const dateField = definition.fields.find((field) => ["scheduled_date", "purchase_date", "installation_date", "inspection_date", "created_at"].includes(field.key));
+    const dateField = definition.fields.find((field) => ["scheduled_date", "event_date", "purchase_date", "installation_date", "inspection_date", "created_at"].includes(field.key));
     if (dateField) {
       where.push(`m.${dateField.key} >= ?`);
       params.push(String(query.from));
     }
   }
   if (query.to) {
-    const dateField = definition.fields.find((field) => ["scheduled_date", "purchase_date", "installation_date", "inspection_date", "created_at"].includes(field.key));
+    const dateField = definition.fields.find((field) => ["scheduled_date", "event_date", "purchase_date", "installation_date", "inspection_date", "created_at"].includes(field.key));
     if (dateField) {
       where.push(`m.${dateField.key} <= ?`);
       params.push(String(query.to));
@@ -113,12 +115,20 @@ function overdueTasks(query: Record<string, unknown>) {
        FROM cleaning_logs
        WHERE archived_at IS NULL AND status NOT IN ('completed','cancelled') AND scheduled_date < ? ${structureClause}
        UNION ALL
+       SELECT 'elevator cleaning' AS module, id, structure_id, cleaning_type AS title, scheduled_date AS task_date, status, NULL AS priority, 0 AS cost
+       FROM elevator_cleaning_logs
+       WHERE archived_at IS NULL AND status NOT IN ('completed','cancelled') AND scheduled_date < ? ${structureClause}
+       UNION ALL
+       SELECT 'barricading' AS module, id, structure_id, message AS title, event_date AS task_date, status, NULL AS priority, 0 AS cost
+       FROM barricading_logs
+       WHERE archived_at IS NULL AND status NOT IN ('completed','cancelled') AND event_date < ? ${structureClause}
+       UNION ALL
        SELECT 'stripping' AS module, id, structure_id, stripping_type AS title, scheduled_date AS task_date, status, NULL AS priority, cost
        FROM stripping_logs
        WHERE archived_at IS NULL AND status NOT IN ('completed','cancelled') AND scheduled_date < ? ${structureClause}
        ORDER BY task_date ASC`
     )
-    .all(today, ...params, today, ...params, today, ...params, today, ...params) as ReportRow[];
+    .all(today, ...params, today, ...params, today, ...params, today, ...params, today, ...params, today, ...params) as ReportRow[];
 }
 
 function costSummary(query: Record<string, unknown>) {

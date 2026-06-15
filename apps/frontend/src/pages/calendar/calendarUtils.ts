@@ -2,7 +2,7 @@ import type { ApiRecord } from "@parking/shared";
 import { recordTitle } from "../../utils/format";
 
 export type CalendarMode = "month" | "quarter" | "fiscal-year" | "annual";
-export type ModuleFilter = "cleaning" | "stripping";
+export type ModuleFilter = "cleaning" | "elevator-cleaning" | "stripping" | "barricading";
 
 export type CalendarEvent = {
   id: string;
@@ -20,7 +20,9 @@ export type CalendarEvent = {
 
 export const moduleOptions: Array<{ key: ModuleFilter; label: string; color: string }> = [
   { key: "cleaning", label: "Cleaning Logs", color: "#1f6f85" },
-  { key: "stripping", label: "Stripping Logs", color: "#6a5d37" }
+  { key: "elevator-cleaning", label: "Elevator Cleaning", color: "#2563eb" },
+  { key: "stripping", label: "Stripping Logs", color: "#6a5d37" },
+  { key: "barricading", label: "Barricading Logs", color: "#b45309" }
 ];
 
 const monthFormatter = new Intl.DateTimeFormat(undefined, { month: "long", year: "numeric" });
@@ -140,20 +142,32 @@ export function calendarDaysForMonth(date: Date) {
 
 export function eventFromRecord(module: ModuleFilter, record: ApiRecord, structureMap: Map<number, string>): CalendarEvent | null {
   const completed = String(record.completed_date ?? "");
-  const scheduled = String(record.scheduled_date ?? "");
+  const scheduled = String(record.scheduled_date ?? record.event_date ?? "");
   const date = completed || scheduled;
   if (!date) {
     return null;
   }
   const structureId = Number(record.structure_id ?? 0);
-  const type = module === "cleaning" ? String(record.cleaning_type ?? "Cleaning") : String(record.stripping_type ?? "Stripping");
-  const subtitle = module === "cleaning" ? String(record.level ?? record.cleaning_scope ?? record.category ?? "") : String(record.affected_area ?? "");
+  const type =
+    module === "cleaning" || module === "elevator-cleaning"
+      ? String(record.cleaning_type ?? "Cleaning")
+      : module === "barricading"
+        ? "Barricading"
+        : String(record.stripping_type ?? "Stripping");
+  const subtitle =
+    module === "cleaning"
+      ? String(record.level ?? record.cleaning_scope ?? record.category ?? "")
+      : module === "elevator-cleaning"
+        ? String(record.elevator_name ?? record.level ?? record.category ?? "")
+        : module === "barricading"
+          ? String(record.message ?? "")
+          : String(record.affected_area ?? "");
   return {
     id: `${module}-${record.id}`,
     module,
     title: type,
     structureId,
-    structureName: structureMap.get(structureId) ?? "Structure",
+    structureName: structureId ? structureMap.get(structureId) ?? "Structure" : "No structure",
     date: date.slice(0, 10),
     dateKind: completed ? "completed" : "scheduled",
     status: String(record.status ?? ""),

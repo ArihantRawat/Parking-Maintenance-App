@@ -42,6 +42,8 @@ export type ModuleKey =
   | "equipment"
   | "maintenanceTickets"
   | "cleaningLogs"
+  | "elevatorCleaningLogs"
+  | "barricadingLogs"
   | "strippingLogs"
   | "inspections"
   | "purchases"
@@ -90,12 +92,12 @@ export const typeValues = {
   cleaningType: ["none", "sweeping", "pressure washing", "trash removal", "surface cleaning", "stain removal", "other"],
   strippingType: ["none", "roof stripping", "paint stripping", "line removal", "surface stripping", "elevator cleaning", "other"],
   frequency: ["Annual", "Quarterly", "Monthly"],
-  reminderType: ["none", "cleaning", "stripping", "equipment", "sign replacement", "maintenance", "purchase", "general"],
+  reminderType: ["none", "cleaning", "elevator cleaning", "barricading", "stripping", "equipment", "sign replacement", "maintenance", "purchase", "general"],
   reminderEvent: ["none", "scheduled work", "completed work", "service due", "warranty expiry", "replacement due", "follow up", "general"],
   reminderFrequency: ["once", "daily", "weekly", "monthly", "quarterly", "annually"],
   purchaseItem: ["None", "Material", "Service", "Supply", "Other"],
   inspectionStatus: ["passed", "needs action", "failed", "follow-up required"],
-  attachmentType: ["photo", "document", "invoice", "before photo", "after photo", "other"]
+  attachmentType: ["photo", "map", "document", "invoice", "before photo", "after photo", "other"]
 };
 
 const timestamps: FieldDefinition[] = [
@@ -156,7 +158,7 @@ export const moduleDefinitions: ModuleDefinition[] = [
     defaultSort: "space_number",
     searchFields: ["space_number", "label", "level", "type", "condition", "status"],
     fields: [
-      structureField,
+      optionalStructureField,
       { key: "space_number", label: "Name / Group Name", type: "text", table: true, form: true, editable: true, required: true, filter: "text" },
       { key: "quantity", label: "Quantity", type: "number", table: true, form: true, editable: true, filter: "number" },
       { key: "group_id", label: "Group", type: "number", table: false, form: false, editable: false },
@@ -182,7 +184,7 @@ export const moduleDefinitions: ModuleDefinition[] = [
     defaultSort: "name",
     searchFields: ["id", "name", "group_type", "level", "area", "status", "description", "notes"],
     fields: [
-      structureField,
+      optionalStructureField,
       { key: "name", label: "Name", type: "text", table: true, form: true, editable: true, required: true, filter: "text" },
       { key: "group_type", label: "Type", type: "enum", table: true, form: true, editable: true, enumValues: typeValues.space, filter: "enum" },
       { key: "level", label: "Level/Floor", type: "text", table: true, form: true, editable: true, filter: "text", optionsFrom: "levels" },
@@ -205,7 +207,7 @@ export const moduleDefinitions: ModuleDefinition[] = [
     defaultSort: "id",
     searchFields: ["name", "sign_type", "message", "condition", "status", "level", "notes"],
     fields: [
-      structureField,
+      optionalStructureField,
       { key: "name", label: "Name", type: "text", table: true, form: true, editable: true },
       { key: "space_id", label: "Space / Group Name", type: "number", table: true, form: true, editable: true, filter: "enum", relation: "parkingSpaces", relationLabel: "space_number" },
       { key: "space_group_id", label: "Group", type: "number", table: false, form: false, editable: false },
@@ -228,15 +230,15 @@ export const moduleDefinitions: ModuleDefinition[] = [
     key: "signOrders",
     tableName: "sign_orders",
     route: "sign-orders",
-    label: "Sign Orders",
-    singular: "Sign Order",
-    description: "Purchase and installation tracking for sign orders",
+    label: "Orders/Purchases",
+    singular: "Order/Purchase",
+    description: "Order and purchase tracking for signs, equipment, services, and materials",
     supportsStructure: true,
     statusField: "status",
     defaultSort: "id",
     searchFields: ["name", "sign_type", "condition", "status", "notes"],
     fields: [
-      structureField,
+      optionalStructureField,
       { key: "name", label: "Name", type: "text", table: true, form: true, editable: true },
       { key: "space_id", label: "Space / Group Name", type: "number", table: false, form: true, editable: true, filter: "enum", relation: "parkingSpaces", relationLabel: "space_number" },
       { key: "space_group_id", label: "Group", type: "number", table: false, form: false, editable: false },
@@ -267,7 +269,7 @@ export const moduleDefinitions: ModuleDefinition[] = [
     defaultSort: "id",
     searchFields: ["id", "description", "status", "notes"],
     fields: [
-      structureField,
+      optionalStructureField,
       { key: "sign_order_id", label: "Order", type: "number", table: true, form: true, editable: true, required: true, filter: "number", relation: "signOrders" },
       { key: "sign_id", label: "Sign", type: "number", table: true, form: true, editable: true, filter: "number", relation: "signs" },
       { key: "description", label: "Description", type: "text", table: true, form: true, editable: true, filter: "text" },
@@ -290,7 +292,7 @@ export const moduleDefinitions: ModuleDefinition[] = [
     defaultSort: "name",
     searchFields: ["name", "level", "condition", "status", "notes"],
     fields: [
-      structureField,
+      optionalStructureField,
       { key: "previous_equipment_id", label: "Replaces", type: "number", table: false, form: false, editable: false, relation: "equipment" },
       { key: "name", label: "Name", type: "text", table: true, form: true, editable: true, required: true, filter: "text" },
       { key: "type", label: "Type", type: "text", table: false, form: false, editable: false },
@@ -323,7 +325,7 @@ export const moduleDefinitions: ModuleDefinition[] = [
     defaultSort: "due_date",
     searchFields: ["id", "issue_type", "priority", "status", "assigned_to", "area", "notes"],
     fields: [
-      structureField,
+      optionalStructureField,
       { key: "space_id", label: "Space", type: "number", table: false, form: true, editable: true, filter: "number", relation: "parkingSpaces" },
       { key: "sign_id", label: "Sign", type: "number", table: false, form: true, editable: true, filter: "number", relation: "signs" },
       { key: "equipment_id", label: "Equipment", type: "number", table: false, form: true, editable: true, filter: "number", relation: "equipment" },
@@ -354,7 +356,7 @@ export const moduleDefinitions: ModuleDefinition[] = [
     defaultSort: "scheduled_date",
     searchFields: ["id", "cleaning_type", "category", "status", "assigned_to", "area", "notes"],
     fields: [
-      structureField,
+      optionalStructureField,
       { key: "space_id", label: "Space", type: "number", table: false, form: true, editable: true, filter: "number", relation: "parkingSpaces" },
       { key: "level", label: "Level/Floor", type: "text", table: true, form: true, editable: true, filter: "text", optionsFrom: "levels" },
       { key: "area", label: "Area/Zone", type: "text", table: false, form: false, editable: false },
@@ -384,7 +386,7 @@ export const moduleDefinitions: ModuleDefinition[] = [
     defaultSort: "scheduled_date",
     searchFields: ["id", "stripping_type", "affected_area", "status", "notes"],
     fields: [
-      structureField,
+      optionalStructureField,
       { key: "area", label: "Area/Zone", type: "text", table: false, form: false, editable: false },
       { key: "stripping_type", label: "Type", type: "enum", table: true, form: true, editable: true, enumValues: typeValues.strippingType, filter: "enum" },
       { key: "affected_area", label: "Affected Area", type: "text", table: true, form: true, editable: true, filter: "text" },
@@ -394,6 +396,54 @@ export const moduleDefinitions: ModuleDefinition[] = [
       { key: "completed_date", label: "Completed", type: "date", table: true, form: true, editable: true, filter: "date" },
       { key: "status", label: "Status", type: "enum", table: true, form: true, editable: true, enumValues: statusValues.scheduled, filter: "enum" },
       { key: "notes", label: "Notes", type: "textarea", table: false, form: true, editable: true, filter: "text" },
+      ...timestamps
+    ]
+  },
+  {
+    key: "elevatorCleaningLogs",
+    tableName: "elevator_cleaning_logs",
+    route: "elevator-cleaning-logs",
+    label: "Elevator Cleaning Logs",
+    singular: "Elevator Cleaning Log",
+    description: "Scheduled and completed elevator lobby, cab, and landing cleaning",
+    supportsStructure: true,
+    statusField: "status",
+    defaultSort: "scheduled_date",
+    searchFields: ["id", "cleaning_type", "elevator_name", "level", "status", "assigned_to", "notes"],
+    fields: [
+      optionalStructureField,
+      { key: "elevator_name", label: "Elevator / Area", type: "text", table: true, form: true, editable: true, filter: "text", placeholder: "Example: Elevator A, east lobby" },
+      { key: "level", label: "Level/Floor", type: "text", table: true, form: true, editable: true, filter: "text", optionsFrom: "levels" },
+      { key: "cleaning_type", label: "Type", type: "enum", table: true, form: true, editable: true, enumValues: typeValues.cleaningType, filter: "enum" },
+      { key: "category", label: "Category", type: "enum", table: true, form: true, editable: true, enumValues: typeValues.cleaningCategory, filter: "enum" },
+      { key: "vendor_id", label: "Vendor Name", type: "number", table: false, form: true, editable: true, filter: "enum", relation: "vendors", relationLabel: "name" },
+      { key: "assigned_to", label: "Assigned To", type: "text", table: true, form: true, editable: true, filter: "text" },
+      { key: "scheduled_date", label: "Scheduled", type: "date", table: true, form: true, editable: true, filter: "date" },
+      { key: "completed_date", label: "Completed", type: "date", table: true, form: true, editable: true, filter: "date" },
+      { key: "frequency", label: "Frequency", type: "enum", table: true, form: true, editable: true, enumValues: typeValues.frequency, filter: "enum" },
+      { key: "status", label: "Status", type: "enum", table: true, form: true, editable: true, enumValues: statusValues.scheduled, filter: "enum" },
+      { key: "notes", label: "Notes", type: "textarea", table: false, form: true, editable: true },
+      ...timestamps
+    ]
+  },
+  {
+    key: "barricadingLogs",
+    tableName: "barricading_logs",
+    route: "barricading-logs",
+    label: "Barricading Logs",
+    singular: "Barricading Log",
+    description: "Barricading notices with optional structure assignment",
+    supportsStructure: true,
+    statusField: "status",
+    defaultSort: "event_date",
+    searchFields: ["id", "message", "status", "notes"],
+    fields: [
+      optionalStructureField,
+      { key: "message", label: "Message", type: "textarea", table: true, form: true, editable: true, required: true, filter: "text" },
+      { key: "event_date", label: "Date", type: "date", table: true, form: true, editable: true, filter: "date" },
+      { key: "event_time", label: "Time", type: "time", table: true, form: true, editable: true },
+      { key: "status", label: "Status", type: "enum", table: true, form: true, editable: true, enumValues: statusValues.scheduled, filter: "enum" },
+      { key: "notes", label: "Notes", type: "textarea", table: false, form: true, editable: true },
       ...timestamps
     ]
   },
@@ -409,7 +459,7 @@ export const moduleDefinitions: ModuleDefinition[] = [
     defaultSort: "inspection_date",
     searchFields: ["id", "inspection_type", "inspector", "findings", "status", "recommended_action", "notes"],
     fields: [
-      structureField,
+      optionalStructureField,
       { key: "space_id", label: "Space", type: "number", table: false, form: true, editable: true, filter: "number", relation: "parkingSpaces" },
       { key: "sign_id", label: "Sign", type: "number", table: false, form: true, editable: true, filter: "number", relation: "signs" },
       { key: "equipment_id", label: "Equipment", type: "number", table: false, form: true, editable: true, filter: "number", relation: "equipment" },
@@ -474,7 +524,7 @@ export const moduleDefinitions: ModuleDefinition[] = [
       { key: "reminder_date", label: "Date", type: "date", table: true, form: true, editable: true, filter: "date" },
       { key: "reminder_time", label: "Time", type: "time", table: true, form: true, editable: true },
       { key: "frequency", label: "Frequency", type: "enum", table: true, form: true, editable: true, enumValues: typeValues.reminderFrequency, filter: "enum" },
-      { key: "email_to", label: "Email To", type: "text", table: true, form: true, editable: true, required: true, filter: "text", placeholder: "name@example.com" },
+      { key: "email_to", label: "Email To", type: "text", table: true, form: true, editable: true, filter: "text", placeholder: "name@example.com" },
       { key: "status", label: "Email Status", type: "enum", table: true, form: false, editable: false, enumValues: statusValues.reminder, filter: "enum" },
       { key: "entity_type", label: "Linked Type", type: "enum", table: false, form: false, editable: false, enumValues: typeValues.reminderType, filter: "enum" },
       { key: "entity_id", label: "Linked Record", type: "number", table: false, form: false, editable: false },
@@ -521,7 +571,7 @@ export const moduleDefinitions: ModuleDefinition[] = [
     defaultSort: "event_date",
     searchFields: ["id", "entity_type", "event_type", "title", "description", "status", "category", "actor"],
     fields: [
-      structureField,
+      optionalStructureField,
       { key: "entity_type", label: "Related Module", type: "text", table: true, form: true, editable: true, filter: "text" },
       { key: "entity_id", label: "Related ID", type: "number", table: false, form: true, editable: true, filter: "number" },
       { key: "event_type", label: "Event Type", type: "text", table: true, form: true, editable: true, filter: "text" },
@@ -568,19 +618,21 @@ export const homeModuleKeys: ModuleKey[] = [
   "signOrders",
   "equipment",
   "cleaningLogs",
+  "elevatorCleaningLogs",
   "strippingLogs",
-  "purchases"
+  "barricadingLogs"
 ];
 
 export const structureDashboardTabs = [
   { key: "overview", label: "Overview" },
   { key: "parking-spaces", label: "Parking Spaces" },
   { key: "signs", label: "Signs" },
-  { key: "sign-orders", label: "Sign Orders" },
+  { key: "sign-orders", label: "Orders/Purchases" },
   { key: "equipment", label: "Equipment" },
   { key: "cleaning-logs", label: "Cleaning" },
+  { key: "elevator-cleaning-logs", label: "Elevator Cleaning" },
   { key: "stripping-logs", label: "Stripping" },
-  { key: "purchases", label: "Purchases" },
+  { key: "barricading-logs", label: "Barricading" },
   { key: "reminders", label: "Scheduler" },
   { key: "timeline", label: "Activity Timeline" },
   { key: "reports", label: "Reports" }

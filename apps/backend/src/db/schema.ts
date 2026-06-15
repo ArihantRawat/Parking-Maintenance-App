@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS vendors (
 
 CREATE TABLE IF NOT EXISTS parking_space_groups (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  structure_id INTEGER NOT NULL REFERENCES structures(id) ON UPDATE CASCADE,
+  structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
   name TEXT NOT NULL,
   group_type TEXT,
   level TEXT,
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS parking_space_groups (
 
 CREATE TABLE IF NOT EXISTS parking_spaces (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  structure_id INTEGER NOT NULL REFERENCES structures(id) ON UPDATE CASCADE,
+  structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
   group_id INTEGER REFERENCES parking_space_groups(id) ON UPDATE CASCADE ON DELETE SET NULL,
   space_number TEXT NOT NULL,
   quantity INTEGER DEFAULT 1,
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS parking_spaces (
 
 CREATE TABLE IF NOT EXISTS signs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  structure_id INTEGER NOT NULL REFERENCES structures(id) ON UPDATE CASCADE,
+  structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
   space_id INTEGER REFERENCES parking_spaces(id) ON UPDATE CASCADE ON DELETE SET NULL,
   space_group_id INTEGER REFERENCES parking_space_groups(id) ON UPDATE CASCADE ON DELETE SET NULL,
   name TEXT,
@@ -85,7 +85,7 @@ CREATE TABLE IF NOT EXISTS signs (
 
 CREATE TABLE IF NOT EXISTS sign_orders (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  structure_id INTEGER NOT NULL REFERENCES structures(id) ON UPDATE CASCADE,
+  structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
   space_id INTEGER REFERENCES parking_spaces(id) ON UPDATE CASCADE ON DELETE SET NULL,
   space_group_id INTEGER REFERENCES parking_space_groups(id) ON UPDATE CASCADE ON DELETE SET NULL,
   sign_id INTEGER REFERENCES signs(id) ON UPDATE CASCADE ON DELETE SET NULL,
@@ -109,7 +109,7 @@ CREATE TABLE IF NOT EXISTS sign_orders (
 
 CREATE TABLE IF NOT EXISTS sign_order_items (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  structure_id INTEGER NOT NULL REFERENCES structures(id) ON UPDATE CASCADE,
+  structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
   sign_order_id INTEGER NOT NULL REFERENCES sign_orders(id) ON UPDATE CASCADE ON DELETE CASCADE,
   sign_id INTEGER REFERENCES signs(id) ON UPDATE CASCADE ON DELETE SET NULL,
   description TEXT,
@@ -124,7 +124,7 @@ CREATE TABLE IF NOT EXISTS sign_order_items (
 
 CREATE TABLE IF NOT EXISTS equipment (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  structure_id INTEGER NOT NULL REFERENCES structures(id) ON UPDATE CASCADE,
+  structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
   previous_equipment_id INTEGER REFERENCES equipment(id) ON UPDATE CASCADE ON DELETE SET NULL,
   name TEXT NOT NULL,
   type TEXT,
@@ -149,7 +149,7 @@ CREATE TABLE IF NOT EXISTS equipment (
 
 CREATE TABLE IF NOT EXISTS maintenance_tickets (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  structure_id INTEGER NOT NULL REFERENCES structures(id) ON UPDATE CASCADE,
+  structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
   space_id INTEGER REFERENCES parking_spaces(id) ON UPDATE CASCADE ON DELETE SET NULL,
   sign_id INTEGER REFERENCES signs(id) ON UPDATE CASCADE ON DELETE SET NULL,
   equipment_id INTEGER REFERENCES equipment(id) ON UPDATE CASCADE ON DELETE SET NULL,
@@ -172,7 +172,7 @@ CREATE TABLE IF NOT EXISTS maintenance_tickets (
 
 CREATE TABLE IF NOT EXISTS cleaning_logs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  structure_id INTEGER NOT NULL REFERENCES structures(id) ON UPDATE CASCADE,
+  structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
   space_id INTEGER REFERENCES parking_spaces(id) ON UPDATE CASCADE ON DELETE SET NULL,
   level TEXT,
   area TEXT,
@@ -192,9 +192,28 @@ CREATE TABLE IF NOT EXISTS cleaning_logs (
   archived_at TEXT
 );
 
+CREATE TABLE IF NOT EXISTS elevator_cleaning_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
+  elevator_name TEXT,
+  level TEXT,
+  cleaning_type TEXT,
+  category TEXT,
+  vendor_id INTEGER REFERENCES vendors(id) ON UPDATE CASCADE ON DELETE SET NULL,
+  assigned_to TEXT,
+  scheduled_date TEXT,
+  completed_date TEXT,
+  frequency TEXT,
+  status TEXT NOT NULL DEFAULT 'scheduled',
+  notes TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  archived_at TEXT
+);
+
 CREATE TABLE IF NOT EXISTS stripping_logs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  structure_id INTEGER NOT NULL REFERENCES structures(id) ON UPDATE CASCADE,
+  structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
   area TEXT,
   stripping_type TEXT,
   affected_area TEXT,
@@ -209,9 +228,22 @@ CREATE TABLE IF NOT EXISTS stripping_logs (
   archived_at TEXT
 );
 
+CREATE TABLE IF NOT EXISTS barricading_logs (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
+  message TEXT NOT NULL,
+  event_date TEXT,
+  event_time TEXT,
+  status TEXT NOT NULL DEFAULT 'scheduled',
+  notes TEXT,
+  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+  archived_at TEXT
+);
+
 CREATE TABLE IF NOT EXISTS inspections (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  structure_id INTEGER NOT NULL REFERENCES structures(id) ON UPDATE CASCADE,
+  structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
   space_id INTEGER REFERENCES parking_spaces(id) ON UPDATE CASCADE ON DELETE SET NULL,
   sign_id INTEGER REFERENCES signs(id) ON UPDATE CASCADE ON DELETE SET NULL,
   equipment_id INTEGER REFERENCES equipment(id) ON UPDATE CASCADE ON DELETE SET NULL,
@@ -333,7 +365,11 @@ CREATE INDEX IF NOT EXISTS idx_sign_orders_structure ON sign_orders(structure_id
 CREATE INDEX IF NOT EXISTS idx_equipment_structure ON equipment(structure_id);
 CREATE INDEX IF NOT EXISTS idx_maintenance_structure ON maintenance_tickets(structure_id);
 CREATE INDEX IF NOT EXISTS idx_cleaning_structure ON cleaning_logs(structure_id);
+CREATE INDEX IF NOT EXISTS idx_elevator_cleaning_structure ON elevator_cleaning_logs(structure_id);
+CREATE INDEX IF NOT EXISTS idx_elevator_cleaning_scheduled ON elevator_cleaning_logs(scheduled_date);
 CREATE INDEX IF NOT EXISTS idx_stripping_structure ON stripping_logs(structure_id);
+CREATE INDEX IF NOT EXISTS idx_barricading_structure ON barricading_logs(structure_id);
+CREATE INDEX IF NOT EXISTS idx_barricading_event_date ON barricading_logs(event_date);
 CREATE INDEX IF NOT EXISTS idx_inspections_structure ON inspections(structure_id);
 CREATE INDEX IF NOT EXISTS idx_purchases_structure ON purchases(structure_id);
 CREATE INDEX IF NOT EXISTS idx_reminders_structure ON reminders(structure_id);
@@ -344,6 +380,213 @@ CREATE INDEX IF NOT EXISTS idx_activity_event_date ON activity_events(event_date
 
 export function migrate() {
   db.exec(sql);
+  rebuildTableIfColumnNotNull(
+    "parking_space_groups",
+    "structure_id",
+    `CREATE TABLE parking_space_groups_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      name TEXT NOT NULL,
+      group_type TEXT,
+      level TEXT,
+      area TEXT,
+      status TEXT NOT NULL DEFAULT 'active',
+      description TEXT,
+      notes TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      archived_at TEXT
+    )`
+  );
+  rebuildTableIfColumnNotNull(
+    "parking_spaces",
+    "structure_id",
+    `CREATE TABLE parking_spaces_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      group_id INTEGER REFERENCES parking_space_groups(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      space_number TEXT NOT NULL,
+      quantity INTEGER DEFAULT 1,
+      label TEXT,
+      level TEXT,
+      area TEXT,
+      type TEXT,
+      condition TEXT,
+      status TEXT NOT NULL DEFAULT 'active',
+      notes TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      archived_at TEXT
+    )`
+  );
+  rebuildTableIfColumnNotNull(
+    "sign_orders",
+    "structure_id",
+    `CREATE TABLE sign_orders_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      space_id INTEGER REFERENCES parking_spaces(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      space_group_id INTEGER REFERENCES parking_space_groups(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      sign_id INTEGER REFERENCES signs(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      vendor_id INTEGER REFERENCES vendors(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      name TEXT,
+      level TEXT,
+      sign_type TEXT,
+      condition TEXT,
+      supplier TEXT,
+      quantity INTEGER DEFAULT 1,
+      cost REAL DEFAULT 0,
+      purchase_date TEXT,
+      delivery_date TEXT,
+      installation_date TEXT,
+      status TEXT NOT NULL DEFAULT 'ordered',
+      notes TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      archived_at TEXT
+    )`
+  );
+  rebuildTableIfColumnNotNull(
+    "sign_order_items",
+    "structure_id",
+    `CREATE TABLE sign_order_items_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      sign_order_id INTEGER NOT NULL REFERENCES sign_orders(id) ON UPDATE CASCADE ON DELETE CASCADE,
+      sign_id INTEGER REFERENCES signs(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      description TEXT,
+      quantity INTEGER DEFAULT 1,
+      unit_cost REAL DEFAULT 0,
+      status TEXT NOT NULL DEFAULT 'ordered',
+      notes TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      archived_at TEXT
+    )`
+  );
+  rebuildTableIfColumnNotNull(
+    "equipment",
+    "structure_id",
+    `CREATE TABLE equipment_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      previous_equipment_id INTEGER REFERENCES equipment(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      name TEXT NOT NULL,
+      type TEXT,
+      level TEXT,
+      area TEXT,
+      vendor_id INTEGER REFERENCES vendors(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      vendor_name TEXT,
+      purchase_date TEXT,
+      installation_date TEXT,
+      warranty_expiry TEXT,
+      service_schedule TEXT,
+      schedule_start_date TEXT,
+      schedule_end_date TEXT,
+      cost REAL DEFAULT 0,
+      condition TEXT,
+      status TEXT NOT NULL DEFAULT 'active',
+      notes TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      archived_at TEXT
+    )`
+  );
+  rebuildTableIfColumnNotNull(
+    "maintenance_tickets",
+    "structure_id",
+    `CREATE TABLE maintenance_tickets_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      space_id INTEGER REFERENCES parking_spaces(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      sign_id INTEGER REFERENCES signs(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      equipment_id INTEGER REFERENCES equipment(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      area TEXT,
+      issue_type TEXT NOT NULL,
+      priority TEXT NOT NULL DEFAULT 'medium',
+      status TEXT NOT NULL DEFAULT 'open',
+      vendor_id INTEGER REFERENCES vendors(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      assigned_to TEXT,
+      cost REAL DEFAULT 0,
+      scheduled_date TEXT,
+      due_date TEXT,
+      completed_date TEXT,
+      recurrence_rule TEXT,
+      notes TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      archived_at TEXT
+    )`
+  );
+  rebuildTableIfColumnNotNull(
+    "cleaning_logs",
+    "structure_id",
+    `CREATE TABLE cleaning_logs_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      space_id INTEGER REFERENCES parking_spaces(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      level TEXT,
+      area TEXT,
+      cleaning_scope TEXT,
+      cleaning_type TEXT,
+      category TEXT,
+      vendor_id INTEGER REFERENCES vendors(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      assigned_to TEXT,
+      cost REAL DEFAULT 0,
+      scheduled_date TEXT,
+      completed_date TEXT,
+      frequency TEXT,
+      status TEXT NOT NULL DEFAULT 'scheduled',
+      notes TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      archived_at TEXT
+    )`
+  );
+  rebuildTableIfColumnNotNull(
+    "stripping_logs",
+    "structure_id",
+    `CREATE TABLE stripping_logs_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      area TEXT,
+      stripping_type TEXT,
+      affected_area TEXT,
+      vendor_id INTEGER REFERENCES vendors(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      cost REAL DEFAULT 0,
+      scheduled_date TEXT,
+      completed_date TEXT,
+      status TEXT NOT NULL DEFAULT 'scheduled',
+      notes TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      archived_at TEXT
+    )`
+  );
+  rebuildTableIfColumnNotNull(
+    "inspections",
+    "structure_id",
+    `CREATE TABLE inspections_new (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      space_id INTEGER REFERENCES parking_spaces(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      sign_id INTEGER REFERENCES signs(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      equipment_id INTEGER REFERENCES equipment(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      cleaning_log_id INTEGER REFERENCES cleaning_logs(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      stripping_log_id INTEGER REFERENCES stripping_logs(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      inspection_type TEXT NOT NULL,
+      inspector TEXT,
+      inspection_date TEXT,
+      findings TEXT,
+      status TEXT,
+      recommended_action TEXT,
+      generated_ticket_id INTEGER REFERENCES maintenance_tickets(id) ON UPDATE CASCADE ON DELETE SET NULL,
+      notes TEXT,
+      created_at TEXT NOT NULL DEFAULT (datetime('now')),
+      updated_at TEXT NOT NULL DEFAULT (datetime('now')),
+      archived_at TEXT
+    )`
+  );
   rebuildTableIfColumnNotNull(
     "purchases",
     "structure_id",
@@ -408,6 +651,10 @@ export function migrate() {
     )`
   );
   db.exec("CREATE INDEX IF NOT EXISTS idx_purchases_structure ON purchases(structure_id)");
+  db.exec("CREATE INDEX IF NOT EXISTS idx_elevator_cleaning_structure ON elevator_cleaning_logs(structure_id)");
+  db.exec("CREATE INDEX IF NOT EXISTS idx_elevator_cleaning_scheduled ON elevator_cleaning_logs(scheduled_date)");
+  db.exec("CREATE INDEX IF NOT EXISTS idx_barricading_structure ON barricading_logs(structure_id)");
+  db.exec("CREATE INDEX IF NOT EXISTS idx_barricading_event_date ON barricading_logs(event_date)");
   db.exec("CREATE INDEX IF NOT EXISTS idx_attachments_structure ON attachments(structure_id)");
   db.exec("CREATE INDEX IF NOT EXISTS idx_activity_structure ON activity_events(structure_id)");
   db.exec("CREATE INDEX IF NOT EXISTS idx_activity_event_date ON activity_events(event_date)");
@@ -468,10 +715,10 @@ export function migrate() {
   );
   rebuildTableIfColumnNotNull(
     "signs",
-    "sign_type",
+    "structure_id",
     `CREATE TABLE signs_new (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
-      structure_id INTEGER NOT NULL REFERENCES structures(id) ON UPDATE CASCADE,
+      structure_id INTEGER REFERENCES structures(id) ON UPDATE CASCADE ON DELETE SET NULL,
       space_id INTEGER REFERENCES parking_spaces(id) ON UPDATE CASCADE ON DELETE SET NULL,
       space_group_id INTEGER REFERENCES parking_space_groups(id) ON UPDATE CASCADE ON DELETE SET NULL,
       name TEXT,

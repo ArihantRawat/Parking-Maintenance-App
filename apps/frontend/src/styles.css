@@ -983,6 +983,26 @@ th.sticky-col {
   font-size: 12px;
 }
 
+.reminder-option-row {
+  align-items: center;
+  grid-template-columns: minmax(0, 1fr) minmax(160px, 220px);
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #f8fbfa;
+}
+
+.reminder-option-row label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reminder-option-row input[type="checkbox"] {
+  width: 16px;
+  min-height: 16px;
+}
+
 .record-form .primary-button,
 .upload-form .primary-button {
   grid-column: 1 / -1;
@@ -1862,6 +1882,14 @@ th.sticky-col {
 
 .calendar-event-stripping {
   border-left-color: #6a5d37;
+}
+
+.calendar-event-elevator-cleaning {
+  border-left-color: #2563eb;
+}
+
+.calendar-event-barricading {
+  border-left-color: #b45309;
 }
 
 .calendar-event-activity {

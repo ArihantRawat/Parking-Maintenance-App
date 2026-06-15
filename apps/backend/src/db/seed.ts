@@ -11,6 +11,8 @@ const tablesInDeleteOrder = [
   "reminders",
   "purchases",
   "inspections",
+  "barricading_logs",
+  "elevator_cleaning_logs",
   "stripping_logs",
   "cleaning_logs",
   "maintenance_tickets",
@@ -466,6 +468,46 @@ export function seedDatabase(options: { reset?: boolean } = {}) {
       notes: "Completed during morning patrol."
     });
 
+    const elevatorClean1 = insert("elevator_cleaning_logs", {
+      structure_id: civic,
+      elevator_name: "Level 1 elevator lobby",
+      level: "1",
+      cleaning_type: "surface cleaning",
+      category: "spot cleaning",
+      vendor_id: vendorIds.cleaning,
+      assigned_to: "BrightDeck Crew A",
+      scheduled_date: "2026-06-20",
+      frequency: "Monthly",
+      status: "scheduled",
+      notes: "Cab threshold and lobby glass."
+    });
+    const elevatorClean2 = insert("elevator_cleaning_logs", {
+      elevator_name: "Mobile lift cab",
+      cleaning_type: "surface cleaning",
+      category: "spot cleaning",
+      assigned_to: "Facilities Team",
+      scheduled_date: "2026-06-24",
+      frequency: "Quarterly",
+      status: "scheduled",
+      notes: "Independent elevator cleaning record."
+    });
+
+    const barricade1 = insert("barricading_logs", {
+      structure_id: campus,
+      message: "Barricade EV row for charger service",
+      event_date: "2026-06-22",
+      event_time: "08:00",
+      status: "scheduled",
+      notes: "Keep north lane open for traffic."
+    });
+    const barricade2 = insert("barricading_logs", {
+      message: "Temporary barricades for delivery staging",
+      event_date: "2026-06-25",
+      event_time: "13:30",
+      status: "scheduled",
+      notes: "Independent barricading notice."
+    });
+
     const strip1 = insert("stripping_logs", {
       structure_id: civic,
       area: "Level 2 east ramp",
@@ -663,7 +705,9 @@ export function seedDatabase(options: { reset?: boolean } = {}) {
       [civic, "inspections", inspection1, "inspection", "2026-06-01T14:00:00.000Z", "Gate safety inspection completed", "Inspection recommended sensor alignment.", "open", "inspection"],
       [civic, "maintenance_tickets", ticket1, "ticket opened", "2026-06-01T15:00:00.000Z", "Gate sensor ticket opened", "High-priority maintenance ticket created from inspection.", "open", "maintenance"],
       [civic, "cleaning_logs", clean1, "scheduled", "2026-06-02T10:00:00.000Z", "Spot pressure washing scheduled", "Oil stain pressure washing scheduled near ADA row.", "scheduled", "cleaning"],
+      [civic, "elevator_cleaning_logs", elevatorClean1, "scheduled", "2026-06-20T09:00:00.000Z", "Elevator cleaning scheduled", "Elevator lobby cleaning scheduled.", "scheduled", "elevator cleaning"],
       [campus, "equipment", campusCharger, "warranty review", "2026-05-28T08:00:00.000Z", "EV charger warranty reminder overdue", "Warranty review reminder is overdue.", "open", "reminder"],
+      [campus, "barricading_logs", barricade1, "scheduled", "2026-06-22T08:00:00.000Z", "EV row barricading scheduled", "Barricading scheduled for charger service.", "scheduled", "barricading"],
       [campus, "maintenance_tickets", ticket2, "ticket updated", "2026-06-03T16:00:00.000Z", "EV holster repair in progress", "Vendor received replacement part.", "open", "maintenance"],
       [campus, "stripping_logs", strip2, "started", "2026-06-02T07:30:00.000Z", "EV row surface stripping started", "Surface stripping is ongoing.", "scheduled", "stripping"],
       [harbor, "maintenance_tickets", ticket3, "completed", "2026-05-19T11:30:00.000Z", "Wheel stop repair completed", "Visitor space wheel stop re-anchored.", "completed", "maintenance"],

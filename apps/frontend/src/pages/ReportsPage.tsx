@@ -6,7 +6,7 @@ export function ReportsPage() {
       <section className="dashboard-heading">
         <div>
           <h1>Reports</h1>
-          <p>Local Excel and PDF exports for maintenance, cleaning, stripping, signs, equipment, purchases, costs, and overdue tasks</p>
+          <p>Local Excel and PDF exports for maintenance, cleaning, elevator cleaning, barricading, stripping, signs, equipment, costs, and overdue tasks</p>
         </div>
       </section>
       <ReportPanel />

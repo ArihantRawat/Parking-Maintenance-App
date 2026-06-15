@@ -140,6 +140,36 @@ export function DetailDrawer({ open, mode, definition, record, forcedStructureId
 
   const title = mode === "add" ? `New ${definition.singular}` : record ? recordTitle(record) : definition.singular;
   const isAddMode = mode === "add";
+  const mapAttachments = attachments.filter((attachment) => String(attachment.attachment_type ?? "") === "map");
+  const standardAttachments = attachments.filter((attachment) => String(attachment.attachment_type ?? "") !== "map");
+
+  function renderAttachments(items: ApiRecord[], title: string) {
+    if (items.length === 0) {
+      return null;
+    }
+    return (
+      <section className="attachment-preview-panel">
+        <h3>{title}</h3>
+        <div className="attachment-preview-grid">
+          {items.map((attachment) => {
+            const url = attachmentUrl(attachment.file_path);
+            const mime = String(attachment.mime_type ?? "");
+            return (
+              <article key={String(attachment.id)} className="attachment-preview-card">
+                {mime.startsWith("image/") ? <img src={url} alt={String(attachment.file_name ?? "Attachment")} /> : null}
+                {mime.startsWith("video/") ? <video src={url} controls /> : null}
+                {!mime.startsWith("image/") && !mime.startsWith("video/") ? <span>Open attachment</span> : null}
+                <strong>{String(attachment.file_name ?? "Attachment")}</strong>
+                <a href={url} target="_blank" rel="noreferrer">
+                  Open attachment
+                </a>
+              </article>
+            );
+          })}
+        </div>
+      </section>
+    );
+  }
 
   return (
     <div
@@ -175,28 +205,8 @@ export function DetailDrawer({ open, mode, definition, record, forcedStructureId
                 );
               })}
             </div>
-            {attachments.length > 0 ? (
-              <section className="attachment-preview-panel">
-                <h3>Attachments</h3>
-                <div className="attachment-preview-grid">
-                  {attachments.map((attachment) => {
-                    const url = attachmentUrl(attachment.file_path);
-                    const mime = String(attachment.mime_type ?? "");
-                    return (
-                      <article key={String(attachment.id)} className="attachment-preview-card">
-                        {mime.startsWith("image/") ? <img src={url} alt={String(attachment.file_name ?? "Attachment")} /> : null}
-                        {mime.startsWith("video/") ? <video src={url} controls /> : null}
-                        {!mime.startsWith("image/") && !mime.startsWith("video/") ? <span>Open attachment</span> : null}
-                        <strong>{String(attachment.file_name ?? "Attachment")}</strong>
-                        <a href={url} target="_blank" rel="noreferrer">
-                          Open attachment
-                        </a>
-                      </article>
-                    );
-                  })}
-                </div>
-              </section>
-            ) : null}
+            {renderAttachments(mapAttachments, "Structure Maps")}
+            {renderAttachments(standardAttachments, "Attachments")}
           </>
         ) : (
           <RecordForm

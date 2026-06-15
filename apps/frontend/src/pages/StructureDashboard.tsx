@@ -15,8 +15,9 @@ const tabToDefinition = {
   "sign-orders": modulesByKey.signOrders,
   equipment: modulesByKey.equipment,
   "cleaning-logs": modulesByKey.cleaningLogs,
+  "elevator-cleaning-logs": modulesByKey.elevatorCleaningLogs,
   "stripping-logs": modulesByKey.strippingLogs,
-  purchases: modulesByKey.purchases,
+  "barricading-logs": modulesByKey.barricadingLogs,
   reminders: modulesByKey.reminders
 };
 

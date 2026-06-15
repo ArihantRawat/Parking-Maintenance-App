@@ -35,8 +35,10 @@ function includesAny(set: Set<string>, value: string) {
 export function CalendarPage() {
   const [structures, setStructures] = useState<ApiRecord[]>([]);
   const [cleaningRows, setCleaningRows] = useState<ApiRecord[]>([]);
+  const [elevatorCleaningRows, setElevatorCleaningRows] = useState<ApiRecord[]>([]);
   const [strippingRows, setStrippingRows] = useState<ApiRecord[]>([]);
-  const [selectedModules, setSelectedModules] = useState<Set<ModuleFilter>>(new Set(["cleaning"]));
+  const [barricadingRows, setBarricadingRows] = useState<ApiRecord[]>([]);
+  const [selectedModules, setSelectedModules] = useState<Set<ModuleFilter>>(new Set(["cleaning", "elevator-cleaning", "stripping", "barricading"]));
   const [selectedStructures, setSelectedStructures] = useState<Set<number>>(new Set());
   const [mode, setMode] = useState<CalendarMode>("month");
   const [anchorDate, setAnchorDate] = useState(() => monthStart(new Date()));
@@ -50,18 +52,24 @@ export function CalendarPage() {
     Promise.all([
       listModule(modulesByKey.structures, { pageSize: 100, sortBy: "name", sortDir: "asc" }),
       listModule(modulesByKey.cleaningLogs, { pageSize: 100, sortBy: "scheduled_date", sortDir: "asc" }),
-      listModule(modulesByKey.strippingLogs, { pageSize: 100, sortBy: "scheduled_date", sortDir: "asc" })
+      listModule(modulesByKey.elevatorCleaningLogs, { pageSize: 100, sortBy: "scheduled_date", sortDir: "asc" }),
+      listModule(modulesByKey.strippingLogs, { pageSize: 100, sortBy: "scheduled_date", sortDir: "asc" }),
+      listModule(modulesByKey.barricadingLogs, { pageSize: 100, sortBy: "event_date", sortDir: "asc" })
     ])
-      .then(([structureResult, cleaningResult, strippingResult]) => {
+      .then(([structureResult, cleaningResult, elevatorCleaningResult, strippingResult, barricadingResult]) => {
         setStructures(structureResult.data);
         setCleaningRows(cleaningResult.data);
+        setElevatorCleaningRows(elevatorCleaningResult.data);
         setStrippingRows(strippingResult.data);
-        setSelectedStructures(new Set(structureResult.data.map((structure) => Number(structure.id))));
+        setBarricadingRows(barricadingResult.data);
+        setSelectedStructures(new Set([0, ...structureResult.data.map((structure) => Number(structure.id))]));
       })
       .catch(() => {
         setStructures([]);
         setCleaningRows([]);
+        setElevatorCleaningRows([]);
         setStrippingRows([]);
+        setBarricadingRows([]);
         setSelectedStructures(new Set());
       })
       .finally(() => setLoading(false));
@@ -72,10 +80,12 @@ export function CalendarPage() {
   const allEvents = useMemo(() => {
     const events = [
       ...cleaningRows.map((row) => eventFromRecord("cleaning", row, structureMap)),
-      ...strippingRows.map((row) => eventFromRecord("stripping", row, structureMap))
+      ...elevatorCleaningRows.map((row) => eventFromRecord("elevator-cleaning", row, structureMap)),
+      ...strippingRows.map((row) => eventFromRecord("stripping", row, structureMap)),
+      ...barricadingRows.map((row) => eventFromRecord("barricading", row, structureMap))
     ].filter((event): event is CalendarEvent => Boolean(event));
     return events.sort((left, right) => left.date.localeCompare(right.date));
-  }, [cleaningRows, strippingRows, structureMap]);
+  }, [barricadingRows, cleaningRows, elevatorCleaningRows, strippingRows, structureMap]);
 
   const typeOptions = useMemo(() => Array.from(new Set(allEvents.map((event) => event.type).filter(Boolean))).sort(), [allEvents]);
   const statusOptions = useMemo(() => Array.from(new Set(allEvents.map((event) => event.status).filter(Boolean))).sort(), [allEvents]);
@@ -158,12 +168,20 @@ export function CalendarPage() {
   }
 
   function selectAllStructures() {
-    setSelectedStructures(new Set(structures.map((structure) => Number(structure.id))));
+    setSelectedStructures(new Set([0, ...structures.map((structure) => Number(structure.id))]));
   }
 
-  const allStructuresSelected = structures.length > 0 && selectedStructures.size === structures.length;
+  const allStructuresSelected = selectedStructures.has(0) && structures.length > 0 && selectedStructures.size === structures.length + 1;
   const selectedDefinition: ModuleDefinition | undefined =
-    selectedEvent?.module === "cleaning" ? modulesByKey.cleaningLogs : selectedEvent?.module === "stripping" ? modulesByKey.strippingLogs : undefined;
+    selectedEvent?.module === "cleaning"
+      ? modulesByKey.cleaningLogs
+      : selectedEvent?.module === "elevator-cleaning"
+        ? modulesByKey.elevatorCleaningLogs
+        : selectedEvent?.module === "stripping"
+          ? modulesByKey.strippingLogs
+          : selectedEvent?.module === "barricading"
+            ? modulesByKey.barricadingLogs
+            : undefined;
 
   return (
     <div className="page-stack">
@@ -171,7 +189,7 @@ export function CalendarPage() {
         <div>
           <p>Operations Calendar</p>
           <h1>Calendar View</h1>
-          <span>See cleaning and stripping work across every structure, or narrow it to the places and work types you care about</span>
+          <span>See cleaning, elevator cleaning, stripping, and barricading work across every structure or independent records</span>
         </div>
         <div className="calendar-hero-stat">
           <strong>{filteredEvents.length}</strong>
@@ -203,7 +221,10 @@ export function CalendarPage() {
             </span>
             <div className="calendar-chip-row calendar-chip-row-scroll">
               <button type="button" className={allStructuresSelected ? "active" : ""} onClick={selectAllStructures}>
-                All structures
+                All structures and independent
+              </button>
+              <button type="button" className={selectedStructures.has(0) ? "active" : ""} onClick={() => toggleStructure(0)}>
+                No structure
               </button>
               {structures.map((structure) => {
                 const id = Number(structure.id);

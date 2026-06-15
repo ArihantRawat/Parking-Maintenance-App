@@ -2,7 +2,20 @@ import { type ModuleDefinition } from "@parking/shared";
 import { db, nowIso } from "../db/database.js";
 
 function chooseTitle(row: Record<string, unknown>, fallback: string) {
-  return String(row.name ?? row.title ?? row.label ?? row.space_number ?? row.issue_type ?? row.sign_type ?? row.description ?? fallback);
+  return String(
+    row.name ??
+      row.title ??
+      row.label ??
+      row.space_number ??
+      row.message ??
+      row.elevator_name ??
+      row.issue_type ??
+      row.cleaning_type ??
+      row.stripping_type ??
+      row.sign_type ??
+      row.description ??
+      fallback
+  );
 }
 
 export function recordAudit(definition: ModuleDefinition, id: number, action: string, row: Record<string, unknown>, summary?: string) {
@@ -27,9 +40,6 @@ export function recordActivity(definition: ModuleDefinition, id: number, action:
   }
 
   const structureId = Number(row.structure_id ?? (definition.key === "structures" ? id : 0)) || null;
-  if (!structureId) {
-    return;
-  }
 
   const title = `${definition.singular} ${action}: ${chooseTitle(row, `#${id}`)}`;
   db.prepare(

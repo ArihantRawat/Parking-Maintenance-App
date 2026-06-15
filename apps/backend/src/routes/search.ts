@@ -14,7 +14,9 @@ function titleFor(definition: ModuleDefinition, row: Record<string, unknown>) {
       row.sign_type ??
       row.issue_type ??
       row.cleaning_type ??
+      row.elevator_name ??
       row.stripping_type ??
+      row.message ??
       row.inspection_type ??
       row.item_type ??
       row.file_name ??

@@ -16,6 +16,31 @@ type RecordFormProps = {
 
 type RelationOptions = Record<string, ApiRecord[]>;
 
+const cleaningReminderModules = new Set(["cleaningLogs", "elevatorCleaningLogs"]);
+
+function nextReminderDate(dateValue: unknown, frequencyValue: unknown) {
+  const source = String(dateValue ?? "");
+  if (!source) {
+    return "";
+  }
+  const date = new Date(`${source.slice(0, 10)}T12:00:00`);
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const frequency = String(frequencyValue ?? "").toLowerCase();
+  if (frequency.includes("annual")) {
+    date.setFullYear(date.getFullYear() + 1);
+  } else if (frequency.includes("quarter")) {
+    date.setMonth(date.getMonth() + 3);
+  } else if (frequency.includes("month")) {
+    date.setMonth(date.getMonth() + 1);
+  } else {
+    return "";
+  }
+  return date.toISOString().slice(0, 10);
+}
+
 export function RecordForm({ definition, initial, forcedStructureId, onSubmit, onSaved, submitLabel = "Save" }: RecordFormProps) {
   const editableFields = useMemo(
     () => definition.fields.filter((field) => field.form !== false && field.key !== "created_at" && field.key !== "updated_at"),
@@ -30,9 +55,14 @@ export function RecordForm({ definition, initial, forcedStructureId, onSubmit, o
   const [relationOptions, setRelationOptions] = useState<RelationOptions>({});
   const [levelOptions, setLevelOptions] = useState<string[]>([]);
   const [files, setFiles] = useState<File[]>([]);
+  const [mapFiles, setMapFiles] = useState<File[]>([]);
+  const [scheduleNextReminder, setScheduleNextReminder] = useState(false);
+  const [reminderTime, setReminderTime] = useState("09:00");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const structureValue = forcedStructureId ?? Number(values.structure_id || 0);
+  const canScheduleCleaningReminder = cleaningReminderModules.has(definition.key) && Boolean(values.frequency);
+  const canUploadMaps = definition.key === "structures";
 
   useEffect(() => {
     const relationFields = editableFields.filter((field) => field.relation);
@@ -110,7 +140,10 @@ export function RecordForm({ definition, initial, forcedStructureId, onSubmit, o
     try {
       const saved = await onSubmit(values);
       const savedRecord = (saved && typeof saved === "object" ? saved : initial) as ApiRecord | undefined;
-      if (files.length > 0) {
+      async function uploadFiles(selectedFiles: File[], attachmentType: string) {
+        if (selectedFiles.length === 0) {
+          return;
+        }
         const structureId =
           definition.key === "structures"
             ? Number(savedRecord?.id ?? initial?.id)
@@ -118,16 +151,42 @@ export function RecordForm({ definition, initial, forcedStructureId, onSubmit, o
         const entityId = Number(savedRecord?.id ?? initial?.id);
         if (entityId) {
           const form = new FormData();
-          files.forEach((file) => form.append("files", file));
+          selectedFiles.forEach((file) => form.append("files", file));
           if (structureId) {
             form.append("structure_id", String(structureId));
           }
           form.append("entity_type", definition.route);
           form.append("entity_id", String(entityId));
-          form.append("attachment_type", "photo");
+          form.append("attachment_type", attachmentType);
           form.append("before_after", "not applicable");
           await uploadAttachment(form);
-          setFiles([]);
+        }
+      }
+
+      await uploadFiles(files, "photo");
+      await uploadFiles(mapFiles, "map");
+      setFiles([]);
+      setMapFiles([]);
+
+      if (canScheduleCleaningReminder && scheduleNextReminder) {
+        const reminderDate = nextReminderDate(values.completed_date || values.scheduled_date, values.frequency);
+        const entityId = Number(savedRecord?.id ?? initial?.id);
+        if (reminderDate && entityId) {
+          await createModuleRecord(modulesByKey.reminders, {
+            structure_id: Number(forcedStructureId ?? values.structure_id ?? savedRecord?.structure_id ?? initial?.structure_id) || null,
+            entity_type: definition.route,
+            entity_id: entityId,
+            title: `Next ${definition.singular.toLowerCase()}`,
+            message: `Auto-created from ${definition.singular.toLowerCase()} frequency.`,
+            event_type: "follow up",
+            reminder_type: definition.key === "elevatorCleaningLogs" ? "elevator cleaning" : "cleaning",
+            reminder_date: reminderDate,
+            reminder_time: reminderTime,
+            frequency: "once",
+            status: "scheduled",
+            source: "cleaning frequency",
+            notes: `Created from ${String(values.frequency).toLowerCase()} frequency.`
+          });
         }
       }
       onSaved?.();
@@ -306,6 +365,47 @@ export function RecordForm({ definition, initial, forcedStructureId, onSubmit, o
           </div>
         ) : null}
       </div>
+      {canUploadMaps ? (
+        <div className="form-field form-field-wide attachment-picker">
+          <span>Structure maps (optional images/videos)</span>
+          <div className="attachment-picker-row">
+            <label className="secondary-file-button">
+              {mapFiles.length > 0 ? "Add more maps" : "Add maps"}
+              <input
+                type="file"
+                multiple
+                accept="image/*,video/*"
+                onChange={(event) => {
+                  const incoming = Array.from(event.target.files ?? []);
+                  setMapFiles((current) => {
+                    const existing = new Set(current.map(fileKey));
+                    const additions = incoming.filter((file) => !existing.has(fileKey(file)));
+                    return [...current, ...additions];
+                  });
+                  event.target.value = "";
+                }}
+              />
+            </label>
+            <strong>{mapFiles.length === 0 ? "No maps selected" : mapFiles.length === 1 ? "1 map selected" : `${mapFiles.length} maps selected`}</strong>
+          </div>
+          {mapFiles.length > 0 ? (
+            <div className="selected-file-list">
+              {mapFiles.map((file) => (
+                <span key={fileKey(file)}>{file.name}</span>
+              ))}
+            </div>
+          ) : null}
+        </div>
+      ) : null}
+      {canScheduleCleaningReminder ? (
+        <div className="form-field form-field-wide reminder-option-row">
+          <label>
+            <input type="checkbox" checked={scheduleNextReminder} onChange={(event) => setScheduleNextReminder(event.target.checked)} />
+            Schedule reminder for next {String(values.frequency).toLowerCase()} cleaning
+          </label>
+          {scheduleNextReminder ? <TimePickerField value={reminderTime} onChange={setReminderTime} /> : null}
+        </div>
+      ) : null}
       {error ? <div className="form-error">{error}</div> : null}
       <button className="primary-button" type="submit" disabled={saving}>
         {saving ? "Saving" : submitLabel}
