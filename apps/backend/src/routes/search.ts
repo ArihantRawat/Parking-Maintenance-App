@@ -3,7 +3,7 @@ import { moduleDefinitions, type ModuleDefinition } from "@parking/shared";
 import { db } from "../db/database.js";
 import { asyncHandler, sendData } from "../utils/api.js";
 
-const hiddenSearchModules = new Set(["parkingSpaceGroups", "maintenanceTickets", "inspections", "attachments"]);
+const hiddenSearchModules = new Set(["parkingSpaceGroups", "maintenanceTickets", "inspections", "attachments", "purchases"]);
 
 function titleFor(definition: ModuleDefinition, row: Record<string, unknown>) {
   return String(
