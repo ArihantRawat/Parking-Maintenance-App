@@ -1,138 +1,209 @@
 # Parking Maintenance App
 
-A local-first full-stack web app for managing parking structures and the operational records tied to them — spaces, signs, equipment, cleaning, stripping, purchases, reminders, attachments, and reports.
+A local-first operations dashboard for parking buildings, lots, and garages. The app tracks structures, spaces, signs, orders and purchases, equipment, cleaning logs, elevator cleaning, stripping, barricading, reminders, activity, reports, vendors, and uploaded media.
 
-Built for single-user or small local-network workflows. Everything runs on your machine: React frontend, Express API, and SQLite storage. No cloud services required.
+It is designed for single-user or small local-network workflows. The frontend, API, SQLite database, file uploads, scheduler, and backups all run on your machine.
 
-## Features
+## What It Does
 
-- **Home dashboard** — tabbed module views with sortable, filterable tables, inline editing, pagination, and CSV export
-- **Structure dashboards** — per-structure tabs for parking spaces, signs, orders, equipment, cleaning, stripping, purchases, scheduler, activity timeline, relationship map, and reports
-- **Global views** — search, cleaning/stripping calendar, activity timeline, and email scheduler
-- **Schema-driven UI** — forms, tables, filters, and detail drawers generated from shared field definitions
-- **Relationship map** — interactive tree of records linked to a structure
-- **Reports** — preview and export maintenance, cleaning, stripping, sign, equipment, purchase, overdue, and cost reports as Excel or PDF
-- **Scheduler** — create email reminders with date/time; automatic send when due (optional SMTP)
-- **Attachments** — local photo and video uploads linked to records
-- **Audit trail** — activity events tracked for timeline views
+- Manage parking structures, buildings, garages, and lots.
+- Track parking spaces and grouped parking areas without exploding grouped quantities into many rows.
+- Add operational entries globally or associate them with a structure only when needed.
+- Track signs, equipment, and service orders in one Orders/Purchases workflow.
+- Log cleaning, elevator cleaning, stripping, and barricading activity.
+- Upload multiple images and videos to entries, then review them from the detail view.
+- Schedule reminders manually or create the next cleaning reminder from a cleaning frequency.
+- View activity as a timeline or calendar.
+- Search across operational records.
+- Export reports to Excel or PDF.
+- Keep automatic SQLite backups every 2 hours by default.
 
 ## Tech Stack
 
-| Layer | Technologies |
+| Layer | Technology |
 | --- | --- |
-| Frontend | React 18, TypeScript, Vite, React Router, Lucide icons |
-| Backend | Node.js, Express, Zod, Multer, PDFKit, Nodemailer |
-| Database | SQLite via `better-sqlite3` |
-| Monorepo | npm workspaces (`apps/*`, `packages/*`) |
+| Frontend | React, TypeScript, Vite, React Router, Lucide icons |
+| Backend | Node.js, Express, Zod, Multer, Nodemailer, PDFKit |
+| Database | SQLite with `better-sqlite3` |
+| Shared schema | npm workspace package at `packages/shared` |
+| Monorepo | npm workspaces for `apps/*` and `packages/*` |
 
 ## Project Structure
 
 ```text
 .
 ├── apps/
-│   ├── backend/          # Express API, SQLite schema/migrations, seed, reports, scheduler
-│   └── frontend/         # React SPA — dashboards, tables, forms, calendar, timeline
+│   ├── backend/          # Express API, SQLite schema, seed data, reports, scheduler, backups
+│   └── frontend/         # React app, tables, forms, dashboard views, calendar, timeline
 ├── packages/
-│   └── shared/           # Module definitions and schema-driven field metadata
-└── package.json          # Root workspace scripts
+│   └── shared/           # Module definitions used by frontend and backend
+├── package.json          # Root workspace scripts
+└── README.md
 ```
 
 ## Quick Start
 
 ### Prerequisites
 
-- Node.js 18+
+- Node.js 18 or newer
 - npm
 
-### Install and run
+### Install
 
 ```bash
 npm install
+```
+
+### Create or update the database
+
+```bash
 npm run db:setup
+```
+
+### Run the full app
+
+```bash
 npm run dev
 ```
 
 | Service | URL |
 | --- | --- |
-| Frontend | http://localhost:5173 |
-| Backend API | http://localhost:4000/api |
-| Health check | http://localhost:4000/api/health |
+| Frontend | `http://localhost:5173` |
+| Backend API | `http://localhost:4000/api` |
+| Health check | `http://localhost:4000/api/health` |
 
-The database is created and seeded automatically on first setup.
-
-### Useful commands
+## Commands
 
 ```bash
-npm run dev            # Start frontend and backend together
-npm run dev:backend    # Backend only
-npm run dev:frontend   # Frontend only
-npm run db:setup       # Create or migrate SQLite database
-npm run seed           # Reset and re-seed sample data
-npm run build          # Typecheck and build for production
-npm run start          # Run backend in production mode
+npm run dev            # Run frontend and backend together
+npm run dev:backend    # Run only the API
+npm run dev:frontend   # Run only the React app
+npm run db:setup       # Create or migrate the SQLite database
+npm run seed           # Reset and seed sample data
+npm run build          # Typecheck backend and frontend, then build frontend assets
+npm run start          # Run the backend in production mode
 ```
 
-## Navigation
+## Main Navigation
 
-| Route | Description |
+| Tab | Purpose |
 | --- | --- |
-| `/` | Home dashboard with module tabs |
-| `/structures` | All structures |
-| `/structures/:id` | Structure overview (relationship map) |
-| `/structures/:id/:tab` | Structure tab — spaces, signs, cleaning, stripping, etc. |
-| `/search` | Keyword search across modules |
-| `/calendar` | Cleaning and stripping calendar (month, quarter, fiscal year, annual) |
-| `/activity-timeline` | Global activity timeline and calendar |
-| `/scheduler` | Email reminder scheduler |
-| `/reports` | Report preview and export |
+| Home | Global operational tables for major modules |
+| Search | Cross-module keyword search |
+| Calendar | Calendar view for cleaning, elevator cleaning, stripping, and barricading |
+| Activity Timeline | Read-only activity timeline and calendar-style activity view |
+| Scheduler | Reminder management and email reminder sending |
+| Structures | Structure list and structure-specific dashboards |
 
-Structure tabs: Overview, Parking Spaces, Signs, Sign Orders, Equipment, Cleaning, Stripping, Purchases, Scheduler, Activity Timeline, Reports.
+## Home Modules
 
-## Data Modules
-
-Each module is linked to a **structure** (building, garage, or lot) unless noted.
+The Home dashboard includes these module tabs:
 
 | Module | Purpose |
 | --- | --- |
-| Structures | Root records — name, location, type, levels, status |
-| Parking Spaces | Individual spaces or named groups with type, condition, and level |
-| Space Groups | Logical groupings (ADA banks, EV rows, visitor zones) |
-| Signs | Installed signage with condition, vendor, and replacement tracking |
-| Sign Orders | Order lifecycle — quantity, cost, delivery, installation |
-| Equipment | Assets with warranty, vendor, schedule, and condition |
-| Maintenance Tickets | Work orders with priority and status |
-| Cleaning Logs | Scheduled and completed cleaning by type, scope, and level |
-| Stripping Logs | Line removal and surface stripping tasks |
-| Inspections | Inspection results with ticket generation |
-| Purchases | Structure-linked procurement |
-| Reminders | Scheduled email reminders (used by Scheduler) |
-| Attachments | Photos, documents, and invoices |
-| Vendors | Vendor directory |
-| Activity Events | Audit log for timeline views |
+| Structures | Parking buildings, lots, and garages |
+| Parking Spaces | Individual spaces or grouped parking areas |
+| Signs | Sign inventory and condition tracking |
+| Orders/Purchases | Order and purchase tracking for signs, equipment, and services |
+| Equipment | Equipment inventory, condition, vendor, warranty, and service data |
+| Cleaning Logs | General cleaning activity and scheduled cleaning |
+| Elevator Cleaning Logs | Elevator-specific cleaning activity |
+| Stripping Logs | Line removal and surface stripping work |
+| Barricading Logs | Barricading messages with date and time |
 
-## Schema-Driven Design
+Most operational modules can be created without selecting a structure. If a structure is selected, the record appears in that structure dashboard as well.
 
-Module metadata lives in `packages/shared/src/index.ts`. Each module defines:
+## Structure Dashboard
 
-- Fields, types, and enum values
-- Which fields appear in tables, forms, and filters
-- Relations (e.g. structure, vendor)
-- Routes, labels, and search fields
+Each structure has its own dashboard with:
 
-The frontend renders generic tables and forms from this metadata. The backend validates CRUD against the same definitions. Adding a field in one place keeps both sides in sync.
+| Tab | Purpose |
+| --- | --- |
+| Overview | Relationship map for records tied to the structure |
+| Parking Spaces | Spaces and space groups scoped to the structure |
+| Signs | Structure-specific signs |
+| Orders/Purchases | Orders and purchases associated with the structure |
+| Equipment | Equipment associated with the structure |
+| Cleaning | Cleaning logs associated with the structure |
+| Elevator Cleaning | Elevator cleaning logs associated with the structure |
+| Stripping | Stripping logs and stripping calendar |
+| Barricading | Barricading logs associated with the structure |
+| Scheduler | Reminders associated with the structure |
+| Activity Timeline | Activity for the structure |
+| Reports | Reports scoped to the structure |
+
+When viewing a structure dashboard, structure filters are hidden because the structure is already fixed.
+
+## Media Uploads
+
+Entries support multiple image and video uploads. Users can select multiple files at once or add files progressively. Uploaded media is stored locally and can be viewed from the entry detail modal.
+
+Structures also support separate map uploads. Structure maps are kept separate from normal entry attachments.
+
+## Reminders
+
+The Scheduler tab stores reminders with date, time, status, email fields, and message content. Cleaning and elevator cleaning forms can also create the next reminder from the selected frequency.
+
+For cleaning reminders:
+
+- Monthly adds 1 month.
+- Quarterly adds 3 months.
+- Annual adds 1 year.
+- The default reminder time is `09:00`.
+- The computed date and time are visible and editable before saving.
+
+If SMTP is configured, due reminders can be sent by email. Without SMTP, reminders are still created and tracked locally.
+
+## Reports
+
+Reports are available from the Reports page and from structure dashboards. Reports can be previewed in the UI or exported as Excel or PDF.
+
+Common report types include:
+
+- Maintenance
+- Cleaning
+- Elevator cleaning
+- Barricading
+- Stripping
+- Signs
+- Equipment
+- Legacy purchases
+- Structure summary
+- Overdue tasks
+- Cost summary
+
+The cost summary includes independent records that are not associated with a structure.
+
+## Data And Backups
+
+Default local data paths:
+
+| Path | Contents |
+| --- | --- |
+| `apps/backend/data/parking-maintenance.sqlite` | SQLite database |
+| `apps/backend/data/backups/` | Automatic database backups |
+| `apps/backend/storage/attachments/` | Uploaded images and videos |
+
+The backend creates a backup on startup and then every 2 hours by default. Backups use SQLite's backup API, which is safe while WAL mode is enabled.
+
+To restore a backup:
+
+1. Stop the backend.
+2. Copy the selected backup file over the active SQLite database.
+3. Restart the backend.
 
 ## Environment Variables
 
-Copy `apps/backend/.env.example` to `apps/backend/.env`. All variables are optional for local use.
+Create `apps/backend/.env` if you need to override defaults.
 
 ```bash
 PORT=4000
-SQLITE_PATH=                          # Defaults to apps/backend/data/parking-maintenance.sqlite
-BACKUP_DIR=                           # Defaults to apps/backend/data/backups
-BACKUP_INTERVAL_MINUTES=120           # Automatic SQLite backup frequency; 0 disables it
-BACKUP_RETENTION=72                   # Number of backup files to keep
+SQLITE_PATH=
+BACKUP_DIR=
+BACKUP_INTERVAL_MINUTES=120
+BACKUP_RETENTION=72
 
-# Optional — required only for sending scheduler emails
+# Optional SMTP settings for scheduler emails
 SMTP_HOST=
 SMTP_PORT=587
 SMTP_USER=
@@ -140,57 +211,70 @@ SMTP_PASS=
 SMTP_FROM=parking-maintenance.local
 ```
 
-Without SMTP, the app works normally. Reminders are created and tracked locally; send actions report a local-only status instead of delivering email.
-
-The backend polls every 5 seconds and sends due reminders automatically when SMTP is configured.
-
-The backend also creates a SQLite backup on startup and then every 2 hours by default. Backups use SQLite's backup API, so they are safe with WAL mode while the app is running. To restore, stop the backend, copy the selected backup over the active `SQLITE_PATH`, and restart the app.
-
-## Local Storage
-
-| Path | Contents |
-| --- | --- |
-| `apps/backend/data/parking-maintenance.sqlite` | SQLite database |
-| `apps/backend/data/backups/` | Automatic SQLite backups |
-| `apps/backend/storage/attachments/` | Uploaded files |
-| `/files/...` | Static file serving URL for attachments |
-
 ## API Overview
 
-REST endpoints are under `/api`.
+All API routes live under `/api`.
 
-**CRUD modules** (list, get, create, update, delete with pagination, search, sort, and filters):
+CRUD-style modules:
 
-`/structures`, `/parking-spaces`, `/parking-space-groups`, `/signs`, `/sign-orders`, `/sign-order-items`, `/equipment`, `/maintenance-tickets`, `/cleaning-logs`, `/stripping-logs`, `/inspections`, `/purchases`, `/reminders`, `/attachments`, `/activity-events`, `/vendors`
+```text
+/structures
+/parking-spaces
+/parking-space-groups
+/signs
+/sign-orders
+/sign-order-items
+/equipment
+/maintenance-tickets
+/cleaning-logs
+/elevator-cleaning-logs
+/stripping-logs
+/barricading-logs
+/inspections
+/purchases
+/reminders
+/attachments
+/activity-events
+/vendors
+```
 
-**Specialized endpoints:**
+Specialized endpoints:
 
 | Endpoint | Purpose |
 | --- | --- |
-| `POST /api/parking-spaces/bulk` | Bulk-create parking spaces |
-| `GET /api/search` | Cross-module keyword search |
-| `GET /api/timeline` | Activity timeline events |
-| `GET /api/relationships/:structureId` | Relationship graph for a structure |
-| `GET /api/reports/:reportType` | Report data (xlsx/pdf download variants) |
-| `POST /api/reminders/generate` | Generate reminders from due dates |
-| `POST /api/reminders/:id/send` | Manually send a reminder email |
-| `POST /api/inspections/:id/generate-ticket` | Create maintenance ticket from inspection |
-| `POST /api/attachments/upload` | Upload attachment files |
-| `GET /api/health` | Health and database path |
+| `POST /api/parking-spaces/bulk` | Create parking spaces in bulk |
+| `GET /api/search` | Global keyword search |
+| `GET /api/timeline` | Activity timeline data |
+| `GET /api/relationships/:structureId` | Structure relationship graph |
+| `GET /api/reports/:reportType` | Report data and export variants |
+| `POST /api/reminders/generate` | Generate reminder records |
+| `POST /api/reminders/:id/send` | Send a reminder email |
+| `POST /api/inspections/:id/generate-ticket` | Create a maintenance ticket from an inspection |
+| `POST /api/attachments/upload` | Upload images and videos |
+| `GET /api/health` | Backend health and database information |
 
-## Reports
+## Schema-Driven Design
 
-Available report types: maintenance, cleaning, stripping, sign, equipment, purchase, structure-summary, overdue-task, cost-summary.
+Module metadata is defined in `packages/shared/src/index.ts`. The shared metadata controls:
 
-Preview in the UI or download as Excel (`.xlsx`) or PDF. Reports can be scoped to a structure or run globally.
+- Field names, labels, types, and enum values
+- Form fields
+- Table columns
+- Filter controls
+- Search fields
+- Relations between modules
+- Routes and module labels
+
+The frontend renders generic tables and forms from this metadata, and the backend validates CRUD payloads against the same definitions.
 
 ## Development Notes
 
-- Migrations run in code on startup (`apps/backend/src/db/schema.ts`)
-- Sample data is seeded when the database is empty
-- Frontend dev server proxies API requests to the backend
-- Enum and status values are stored lowercase in the database; the UI capitalizes display labels
+- SQLite schema migrations run from `apps/backend/src/db/schema.ts`.
+- Seed data is managed in `apps/backend/src/db/seed.ts`.
+- The frontend dev server proxies API calls to the backend.
+- Uploaded files are served from local storage through backend file routes.
+- Deleted operational records are removed through the app delete flow after confirmation.
 
 ## License
 
-Private project — all rights reserved.
+Private project. All rights reserved.
